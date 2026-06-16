@@ -101,6 +101,25 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 .expl details summary{outline:none}
 .expl details summary::-webkit-details-marker{color:#818cf8}
 
+/* cheat sheet */
+.cheat-intro{font-size:13px;color:#94a3b8;line-height:1.6;background:#1e293b;border:1px solid #334155;border-left:3px solid #6366f1;border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.cheat-h{font-size:15px;font-weight:700;color:#f1f5f9;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+.ctab{width:100%;border-collapse:collapse;font-size:13px;background:#1e293b;border:1px solid #334155;border-radius:10px;overflow:hidden}
+.ctab td{padding:8px 12px;border-bottom:1px solid #0f172a}
+.ctab tr:last-child td{border-bottom:none}
+.ctab td:first-child{color:#cbd5e1}
+.ctab td:last-child{color:#c4b5fd;font-family:Consolas,'SF Mono',monospace;text-align:right;white-space:nowrap}
+.fx{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:9px 12px;margin-bottom:7px;font-size:13px;line-height:1.5}
+.fx b{color:#a5b4fc}
+.fx code{color:#86efac;font-family:Consolas,'SF Mono',monospace;font-size:12.5px}
+.spine{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.spine-t{font-weight:700;color:#a5b4fc;margin-bottom:4px;font-size:14px}
+.spine-d{font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.5}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.node{background:#0f172a;border:1px solid #475569;border-radius:8px;padding:6px 10px;font-size:12px;color:#e2e8f0;line-height:1.35}
+.node b{color:#c4b5fd}
+.arr{color:#6366f1;font-weight:800;font-size:14px}
+
 /* install banner */
 #installbanner{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#cbd5e1;display:flex;align-items:flex-start;gap:12px}
 #installbanner .ibx{flex:1}
@@ -138,6 +157,7 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 <div id="train" style="display:none"></div>
 <div id="sprint" style="display:none"></div>
 <div id="stats" style="display:none"></div>
+<div id="cheat" style="display:none"></div>
 <div class="nav">
 <button class="btn" onclick="go(cur-1)">&#8592; Пред</button>
 <button class="btn pri" onclick="go(cur+1)">След &#8594;</button>
@@ -1175,7 +1195,7 @@ function setMode(m){
   document.getElementById('tabs').style.display=study?'':'none';
   document.getElementById('ct').style.display=study?'':'none';
   document.querySelector('.nav').style.display='none';
-  ['session','train','sprint','stats'].forEach(function(x){
+  ['session','train','sprint','stats','cheat'].forEach(function(x){
     document.getElementById(x).style.display=(m===x)?'':'none';
   });
   if(m!=='sprint')stopSprint();
@@ -1184,10 +1204,11 @@ function setMode(m){
   if(m==='train')renderTrain();
   if(m==='sprint')renderSprintStart();
   if(m==='stats')renderStats();
+  if(m==='cheat')renderCheat();
   window.scrollTo(0,0);
 }
 function buildModes(){
-  var defs=[['session','\u{1F3AF}','Сессия'],['home','\u{1F4DA}','Темы'],['train','\u267E\uFE0F','Трен.'],['sprint','\u23F1','Спринт'],['stats','\u{1F4C8}','Стат.']];
+  var defs=[['session','\u{1F3AF}','Сессия'],['home','\u{1F4DA}','Темы'],['train','\u267E\uFE0F','Трен.'],['sprint','\u23F1','Спринт'],['stats','\u{1F4C8}','Стат.'],['cheat','\u{1F4CB}','Шпора']];
   var h='';
   defs.forEach(function(d){h+='<button class="mbtn" data-m="'+d[0]+'" onclick="setMode(\''+d[0]+'\')"><span class="mico">'+d[1]+'</span><span>'+d[2]+'</span></button>';});
   document.getElementById('modes').innerHTML=h;
@@ -1648,6 +1669,115 @@ function maybeInstallBanner(){
   var isStandalone=window.navigator.standalone===true;
   var gone=false;try{gone=!!localStorage.getItem('ib_gone');}catch(e){}
   if(isIOS&&!isStandalone&&!gone)document.getElementById('installbanner').style.display='flex';
+}
+
+function renderCheat(){
+  var el=document.getElementById('cheat');
+  function tab(rows){return '<table class="ctab">'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}).join('')+'</table>';}
+  var h='<div class="stitle">📋 Шпаргалка — выучи наизусть</div>';
+  h+='<div class="cheat-intro">Это твои <b style="color:#c4b5fd">якоря</b>. Мысленный счёт — это не талант, а память + разбиение. Сначала прикинь <b style="color:#c4b5fd">порядок</b> (степень десятки), потом цифры. Ниже — то, что должно отскакивать от зубов.</div>';
+
+  h+='<div class="cheat-h">🔢 Проценты от числа</div>';
+  h+=tab([
+    ['1%','база / 100'],
+    ['10%','сдвиг запятой влево'],
+    ['5%','половина от 10%'],
+    ['25%','÷ 4'],
+    ['50%','÷ 2'],
+    ['12% = 10% + 2×1%','собирай из блоков'],
+    ['15% = 10% + 5%','напр. 15% от 80K = 12K']
+  ]);
+
+  h+='<div class="cheat-h">½ Дроби ↔ проценты</div>';
+  h+=tab([
+    ['1/2 · 1/3 · 1/4','50% · 33% · 25%'],
+    ['1/5 · 1/6 · 1/7','20% · 16.7% · 14.3%'],
+    ['1/8 · 1/9 · 1/10','12.5% · 11% · 10%'],
+    ['2/3 · 3/4','66.7% · 75%'],
+    ['1/20 · 1/25','5% · 4%']
+  ]);
+
+  h+='<div class="cheat-h">× Разы ↔ проценты</div>';
+  h+=tab([
+    ['«в k раз»','+(k−1)×100%'],
+    ['×1.5 · ×2','+50% · +100%'],
+    ['×2.5 · ×3','+150% · +200%'],
+    ['рост 29→104','104/29≈3.6× → +260%']
+  ]);
+
+  h+='<div class="cheat-h">⏳ Правило 72 (удвоение)</div>';
+  h+='<div class="spine-d" style="margin:-4px 0 10px">Срок удвоения ≈ 72 / ставка (%). Работает для 4–30%.</div>';
+  h+=tab([
+    ['6% · 8% · 9%','12 · 9 · 8 лет'],
+    ['12% · 18% · 24%','6 · 4 · 3 года']
+  ]);
+
+  h+='<div class="cheat-h">∞ Множитель перпетуитета (1/r)</div>';
+  h+='<div class="spine-d" style="margin:-4px 0 10px">PV вечного потока = CF × этот множитель.</div>';
+  h+=tab([
+    ['5% · 8% · 10%','×20 · ×12.5 · ×10'],
+    ['12% · 15% · 20% · 25%','×8.3 · ×6.7 · ×5 · ×4']
+  ]);
+
+  h+='<div class="cheat-h">🔁 Сложный % и симметрия</div>';
+  h+=tab([
+    ['1% / 1.5% / 2% в мес → год','≈12.7% / 19.6% / 26.8%'],
+    ['(1.01)¹² / (1.015)¹² / (1.02)¹²','1.127 / 1.196 / 1.268'],
+    ['+x% потом −x%','= −x²/100'],
+    ['±10% / ±20% / ±30%','−1% / −4% / −9%']
+  ]);
+
+  h+='<div class="cheat-h">⚠️ п.п. vs % и масштаб</div>';
+  h+=tab([
+    ['п.п.','разница в лоб (50−35=15)'],
+    ['%','разница / старое (15/35=43%)'],
+    ['порядки','млрд/млн = тыс; трлн/млн = млн'],
+    ['правило','всегда называй оба: «+15 п.п., +43%»']
+  ]);
+
+  // ---- formula quick-ref ----
+  h+='<div class="cheat-h">⚡ Формулы за 3 секунды</div>';
+  function fx(name,f){return '<div class="fx"><b>'+name+'</b> &middot; <code>'+f+'</code></div>';}
+  h+=fx('PV перпетуитета','CF / r');
+  h+=fx('Растущий перпетуитет','CF / (r − g)');
+  h+=fx('NPV','CF × AF − Инвестиция');
+  h+=fx('Break-even CF','Инвестиция / AF');
+  h+=fx('IRR (интерполяция)','r₁ + (r₂−r₁)·NPV₁/(NPV₁−NPV₂)');
+  h+=fx('EAR','(1 + r/m)^m − 1');
+  h+=fx('Ставка кредита','COF + PD×LGD + OpEx + маржа');
+  h+=fx('ECL','PD × LGD × EAD');
+  h+=fx('EAD линии','drawn + CCF × undrawn');
+  h+=fx('Cost of Risk','резервы / портфель');
+  h+=fx('LTV','ARPU × маржа × lifetime');
+  h+=fx('Lifetime','1 / (1 − retention)');
+  h+=fx('LTV : CAC','3:1 здорово &middot; 1:1 сжигает');
+  h+=fx('NIM','чистый %-доход / портфель');
+  h+=fx('Terminal value (DCF)','FCF·(1+g) / (WACC − g)');
+  h+=fx('EV → Equity','EV − Debt + Cash');
+  h+=fx('Stickiness','DAU / MAU');
+  h+=fx('Выручка платежа','tx × чек × take rate × доля');
+  h+=fx('Float income','остатки × ставка размещения');
+
+  // ---- concept spines ----
+  h+='<div class="cheat-h">🗺️ Карта связей — 5 «хребтов»</div>';
+  h+='<div class="cheat-intro" style="border-left-color:#a855f7">Не зубри 20 формул. Это <b style="color:#c4b5fd">5 идей</b>, каждая под разными углами. Поймёшь хребет — выведешь любую формулу из него.</div>';
+  function spine(title,desc,nodes){
+    var c=nodes.map(function(n,i){return (i?'<span class="arr">→</span>':'')+'<span class="node">'+n+'</span>';}).join('');
+    return '<div class="spine"><div class="spine-t">'+title+'</div><div class="spine-d">'+desc+'</div><div class="chain">'+c+'</div></div>';
+  }
+  h+=spine('1. Хребет дисконтирования','Деньги во времени. Всё ниже — ОДНА формула под разными углами.',
+    ['Деньги сегодня > завтра','<b>PV</b> = дисконт','Перпетуитет <b>CF/r</b>','Растущий <b>CF/(r−g)</b>','Аннуитет <b>CF×AF</b>','<b>NPV</b> = PV − инвест.','<b>IRR</b>: NPV=0','DCF <b>terminal</b>']);
+  h+=spine('2. Хребет риска','Ожидаемая потеря = вероятность × тяжесть. Один множитель растёт — растёт всё.',
+    ['вероятность × тяжесть','<b>PD×LGD</b> (на ₽)','×EAD = <b>ECL</b> (сделка)','/портфель = <b>CoR</b>','входит в <b>ставку</b>','режет <b>NIM</b>']);
+  h+=spine('3. Хребет юнит-экономики','Сколько стоит клиент. Главное звено — как долго остаётся.',
+    ['retention','<b>lifetime</b> = 1/churn','×ARPU×маржа = <b>LTV</b>','vs <b>CAC</b> (3:1)','+cross-sell <b>P×value</b>','CAC=0 → ∞']);
+  h+=spine('4. Хребет «цепочка множителей»','Воронки, attach, P&L, Fermi — это одна цепочка. Каждый множитель режет базу.',
+    ['база','× конверсия','× чек','× ставка','× доля','= результат']);
+  h+=spine('5. Хребет процентов','Фундамент под всем. Якоря отсюда работают везде.',
+    ['1% = база/100','рост = ×раз − 1','п.п. vs %','цепочка = ×множители','compound = степень']);
+
+  h+='<div style="height:24px"></div>';
+  el.innerHTML=h;
 }
 
 if('serviceWorker' in navigator){
