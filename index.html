@@ -520,7 +520,7 @@ function restoreState(){
     ST=d;
     ST.gen=ST.gen||{};ST.m=ST.m||{};ST.journal=ST.journal||[];
     ST.streak=ST.streak||{cur:0,best:0};ST.sess=ST.sess||{lastDay:'',count:0};
-    ST.sprintBest=ST.sprintBest||{};ST.sprintHist=ST.sprintHist||[];
+    ST.sprintBest=ST.sprintBest||{};ST.sprintHist=ST.sprintHist||[];ST.activeSess=ST.activeSess||null;
     ans=ST.ans||{};score=0;done=0;
     for(var k in ans){
       if(!Object.prototype.hasOwnProperty.call(ans,k))continue;
@@ -1280,6 +1280,12 @@ function(){
 var seQ=[],seIdx=0,seCur=null,seDone=false,seT0=0,seC=0,seStart0=0,seMBefore=0;
 function masterySum(){var s=0;for(var i=0;i<GEN.length;i++)s+=mOf(GEN[i].id).v;return s;}
 function renderSessionStart(){
+  if(ST.activeSess&&ST.activeSess.day===today()){
+    seQ=ST.activeSess.q.map(function(x){return {g:x.gid?genById(x.gid):null,t:x.t,ph:x.ph};});
+    seIdx=ST.activeSess.seIdx;seC=ST.activeSess.seC;seMBefore=ST.activeSess.seMBefore;
+    seStart0=Date.now();seCur=seQ[seIdx];seDone=false;seT0=Date.now();
+    renderSessionRun();return;
+  }
   var el=document.getElementById('session');
   var st=ST.streak,doneToday=(ST.sess.lastDay===today());
   var due=pickDue(3,null,null).map(function(g){return g.name;});
@@ -1303,10 +1309,16 @@ function seBegin(){
   var cs=CASES[ri(0,CASES.length-1)]();
   cs.forEach(function(t){seQ.push({g:null,t:t,ph:'Кейс'});});
   seIdx=0;seC=0;seStart0=Date.now();seMBefore=masterySum();
+  ST.activeSess={day:today(),seIdx:0,seC:0,seMBefore:seMBefore,
+    q:seQ.map(function(x){return {gid:x.g?x.g.id:null,t:x.t,ph:x.ph};})};
+  lsSave();
   seNext(true);
 }
 function seNext(first){
-  if(!first)seIdx++;
+  if(!first){
+    seIdx++;
+    if(ST.activeSess){ST.activeSess.seIdx=seIdx;ST.activeSess.seC=seC;lsSave();}
+  }
   if(seIdx>=seQ.length){seEnd();return;}
   seCur=seQ[seIdx];seDone=false;seT0=Date.now();
   renderSessionRun();
@@ -1377,6 +1389,7 @@ function markSessionDone(){
   lsSave();
 }
 function seEnd(){
+  ST.activeSess=null;lsSave();
   markSessionDone();
   var mins=Math.round((Date.now()-seStart0)/6000)/10;
   var dM=masterySum()-seMBefore;
