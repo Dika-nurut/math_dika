@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;padding:16px;line-height:1.6}
+body{font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;padding:16px;padding-bottom:calc(80px + env(safe-area-inset-bottom));line-height:1.6}
 .container{max-width:720px;margin:0 auto}
 h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 .sub{text-align:center;color:#94a3b8;font-size:13px;margin-bottom:20px}
@@ -50,7 +50,7 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 .qbox{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:12px}
 .qnum{font-size:11px;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
 .qtxt{font-size:16px;font-weight:600;margin-bottom:16px;color:#f1f5f9;line-height:1.5}
-.opt{display:block;width:100%;padding:12px 16px;margin-bottom:8px;border:2px solid #334155;border-radius:8px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:14px;text-align:left;transition:all 0.2s}
+.opt{display:block;width:100%;padding:15px 16px;margin-bottom:10px;border:2px solid #334155;border-radius:10px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:15px;text-align:left;transition:all 0.2s}
 .opt:hover{border-color:#6366f1;background:#1e1b4b}
 .opt.ok{border-color:#10b981;background:#064e3b;color:#6ee7b7;cursor:default}
 .opt.no{border-color:#ef4444;background:#450a0a;color:#fca5a5;cursor:default}
@@ -65,10 +65,11 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 .btn.pri:hover{background:#4f46e5}
 
 /* === trainer 3.0 === */
-.modes{display:flex;gap:6px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
-.mbtn{padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#94a3b8;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
-.mbtn:hover{border-color:#6366f1;color:#c7d2fe}
-.mbtn.act{background:#6366f1;border-color:#6366f1;color:#fff}
+.modes{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0a1120;border-top:1px solid #1e293b;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:100}
+.mbtn{flex:1;padding:6px 2px;border-radius:6px;border:none;background:transparent;color:#475569;cursor:pointer;font-size:9px;font-weight:600;transition:color .15s;display:flex;flex-direction:column;align-items:center;gap:2px}
+.mbtn .mico{font-size:22px;line-height:1}
+.mbtn:hover{color:#c7d2fe}
+.mbtn.act{color:#818cf8}
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
 .chip{padding:6px 10px;font-size:11px;border:1px solid #334155;border-radius:6px;background:#1e293b;color:#94a3b8;cursor:pointer;transition:all .15s}
 .chip:hover{border-color:#6366f1;color:#c7d2fe}
@@ -88,10 +89,33 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 .srow{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}
 .sbarw{flex:1;background:#0f172a;height:8px;border-radius:4px;overflow:hidden}
 .sbar{height:100%;border-radius:4px}
+
+/* install banner */
+#installbanner{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#cbd5e1;display:flex;align-items:flex-start;gap:12px}
+#installbanner .ibx{flex:1}
+#installbanner strong{display:block;color:#f1f5f9;margin-bottom:2px}
+#installbanner button{background:none;border:none;color:#475569;font-size:20px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+
+/* answer animations */
+@keyframes vrd-ok{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes vrd-no{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.vrd.ok{animation:vrd-ok .25s ease both}
+.vrd.no{animation:vrd-no .4s ease both}
+
+/* confetti */
+#confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;overflow:hidden}
+.cp{position:absolute;width:8px;height:8px;border-radius:2px;animation:cpfall linear forwards}
+@keyframes cpfall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
 </style>
 </head>
 <body>
+<div id="confetti"></div>
 <div class="container">
+<div id="installbanner" style="display:none">
+  <span style="font-size:24px">📲</span>
+  <div class="ibx"><strong>Добавить на экран</strong>Safari → Поделиться → «На экран Домой» — откроется как приложение</div>
+  <button onclick="dismissInstall()">✕</button>
+</div>
 <h1>🎯 Финтех Тренажёр</h1>
 <p class="sub" id="meta">18 тем &middot; 73 задач &middot; Avito Fintech</p>
 <div class="progress"><div class="pfill" id="pf"></div></div>
@@ -1125,9 +1149,9 @@ function setMode(m){
   window.scrollTo(0,0);
 }
 function buildModes(){
-  var defs=[['session','\u{1F3AF} Сессия'],['home','\u{1F4DA} Темы'],['train','\u267E\uFE0F Тренажёр'],['sprint','\u23F1 Спринт'],['stats','\u{1F4C8} Статистика']];
+  var defs=[['session','\u{1F3AF}','Сессия'],['home','\u{1F4DA}','Темы'],['train','\u267E\uFE0F','Трен.'],['sprint','\u23F1','Спринт'],['stats','\u{1F4C8}','Стат.']];
   var h='';
-  defs.forEach(function(d){h+='<button class="mbtn" data-m="'+d[0]+'" onclick="setMode(\''+d[0]+'\')">'+d[1]+'</button>';});
+  defs.forEach(function(d){h+='<button class="mbtn" data-m="'+d[0]+'" onclick="setMode(\''+d[0]+'\')"><span class="mico">'+d[1]+'</span><span>'+d[2]+'</span></button>';});
   document.getElementById('modes').innerHTML=h;
 }
 
@@ -1206,6 +1230,7 @@ function trSubmit(){
   if(trDone)return;
   var v=document.getElementById('ain').value;
   if(!v||!parseAns(v)){document.getElementById('ain').style.borderColor='#f59e0b';return;}
+  if(document.activeElement)document.activeElement.blur();
   trFinish(checkAns(v,trCur.t),false,v);
 }
 function trGiveUp(){if(!trDone)trFinish(false,true,'');}
@@ -1369,6 +1394,7 @@ function seSubmit(){
   if(seDone)return;
   var v=document.getElementById('sein').value;
   if(!v||!parseAns(v)){document.getElementById('sein').style.borderColor='#f59e0b';return;}
+  if(document.activeElement)document.activeElement.blur();
   seFinish(checkAns(v,seCur.t),false,v);
 }
 function seGiveUp(){if(!seDone)seFinish(false,true,'');}
@@ -1391,6 +1417,7 @@ function markSessionDone(){
 function seEnd(){
   ST.activeSess=null;lsSave();
   markSessionDone();
+  launchConfetti();
   var mins=Math.round((Date.now()-seStart0)/6000)/10;
   var dM=masterySum()-seMBefore;
   var el=document.getElementById('session');
@@ -1554,6 +1581,36 @@ augmentQuestions();
 restoreState();
 buildModes();
 setMode(ST.sess&&ST.sess.lastDay===today()?'home':'session');
+maybeInstallBanner();
+
+
+function launchConfetti(){
+  var el=document.getElementById('confetti');
+  el.innerHTML='';
+  var colors=['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#3b82f6','#ec4899'];
+  for(var i=0;i<60;i++){
+    var d=document.createElement('div');
+    d.className='cp';
+    d.style.left=Math.random()*100+'%';
+    d.style.background=colors[Math.floor(Math.random()*colors.length)];
+    d.style.width=(6+Math.random()*8)+'px';
+    d.style.height=(6+Math.random()*8)+'px';
+    d.style.animationDuration=(1.5+Math.random()*2)+'s';
+    d.style.animationDelay=(Math.random()*0.8)+'s';
+    el.appendChild(d);
+  }
+  setTimeout(function(){el.innerHTML='';},4000);
+}
+function dismissInstall(){
+  document.getElementById('installbanner').style.display='none';
+  try{localStorage.setItem('ib_gone','1');}catch(e){}
+}
+function maybeInstallBanner(){
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isStandalone=window.navigator.standalone===true;
+  var gone=false;try{gone=!!localStorage.getItem('ib_gone');}catch(e){}
+  if(isIOS&&!isStandalone&&!gone)document.getElementById('installbanner').style.display='flex';
+}
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(function(){});
