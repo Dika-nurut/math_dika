@@ -602,7 +602,7 @@ function restoreState(){
     ST=d;
     ST.gen=ST.gen||{};ST.m=ST.m||{};ST.journal=ST.journal||[];
     ST.streak=ST.streak||{cur:0,best:0};ST.sess=ST.sess||{lastDay:'',count:0};
-    ST.sprintBest=ST.sprintBest||{};ST.sprintHist=ST.sprintHist||[];ST.activeSess=ST.activeSess||null;
+    ST.sprintBest=ST.sprintBest||{};ST.sprintHist=ST.sprintHist||[];ST.activeSess=ST.activeSess||null;ST.estMode=(ST.estMode!==false);
     ans=ST.ans||{};score=0;done=0;
     for(var k in ans){
       if(!Object.prototype.hasOwnProperty.call(ans,k))continue;
@@ -1230,6 +1230,40 @@ function verdictHTML(t,ok,gave,why,sec,evt,hack){
 
 /* ---------- TRAIN mode ---------- */
 var trCat='all',trCur=null,trDone=false,sesA=0,sesC=0,trT0=0;
+function estLabel(e){
+  var names=['единицы (1–9)','десятки (10–99)','сотни (100–999)','тысячи','десятки тысяч','сотни тысяч','миллионы','десятки млн','сотни млн','миллиарды','десятки млрд','сотни млрд','триллионы'];
+  return names[Math.max(0,Math.min(12,e))];
+}
+function estBuckets(t){
+  if(!t||t.kind==='mcq')return null;
+  var T=Math.abs(t.a*(t.scale||1));
+  if(!(T>0)||!isFinite(T))return null;
+  var e=Math.floor(Math.log10(T));
+  if(e<0)e=0; if(e>12)e=12;
+  var start=Math.max(0,e-1);
+  if(e-start>3)start=e-3;
+  var opts=[];
+  for(var i=0;i<4;i++){var ex=start+i;if(ex>12)break;opts.push(ex);}
+  return {opts:opts,correct:e};
+}
+function trEst(ex){
+  if(trDone||!trCur||trCur.estPicked!==undefined)return;
+  var b=estBuckets(trCur.t);if(!b)return;
+  trCur.estPicked=ex;
+  trCur.estOK=(ex===b.correct);
+  renderTrain();
+}
+function trEstSkip(){
+  if(trDone||!trCur)return;
+  trCur.estPicked=-1;trCur.estOK=null;
+  renderTrain();
+}
+function trToggleEst(){
+  ST.estMode=(ST.estMode===false)?true:false;
+  lsSave();
+  if(trCur){trCur.estPicked=undefined;trCur.estOK=undefined;}
+  renderTrain();
+}
 function newTask(){
   var g=pickGen(trCat);
   trCur={g:g,t:g.make(lvlOf(g.id))};
@@ -1249,6 +1283,7 @@ function renderTrain(){
   }
   var t=trCur.t,g=trCur.g,m=mOf(g.id);
   var h='<div class="chips">'+chips+'</div>';
+  h+='<div style="text-align:center;margin:-2px 0 12px"><button class="chip'+((ST.estMode!==false)?' act':'')+'" onclick="trToggleEst()">\uD83C\uDFAF Прикидка порядка: '+((ST.estMode!==false)?'вкл':'выкл')+'</button></div>';
   h+='<div class="sline"><span>Сессия: '+sesA+(sesA?' \u00B7 '+Math.round(sesC/sesA*100)+'%':'')+'</span><span style="color:#818cf8">'+g.name+' \u00B7 L'+m.lvl+' \u00B7 цель \u2264'+targetTime(g,m.lvl)+'с</span></div>';
   h+='<div class="tcard">';
   h+='<div class="tq">'+t.q+'</div>';
@@ -1259,9 +1294,23 @@ function renderTrain(){
       h+='<button class="'+cls+'" onclick="trPick('+oi+')">'+String.fromCharCode(65+oi)+'. '+t.options[oi]+'</button>';
     }
   } else if(!trDone){
-    h+='<div class="arow"><input id="ain" class="ain" autocomplete="off" placeholder="Твой ответ'+(t.unit==='%'?' (%)':'')+'" onkeydown="if(event.key===\'Enter\')trSubmit()">'
-      +'<button class="btn pri" onclick="trSubmit()">OK</button></div>'
-      +'<div style="margin-top:10px;text-align:right"><button class="btn" style="font-size:12px" onclick="trGiveUp()">Не знаю \u2192</button></div>';
+    var eb=(ST.estMode!==false)?estBuckets(t):null;
+    if(eb && trCur.estPicked===undefined){
+      h+='<div style="font-size:13px;color:#a5b4fc;margin-bottom:10px">\uD83C\uDFAF Сначала прикинь <b>порядок</b> ответа \u2014 какой он величины? <span style="color:#64748b">(на счёт не влияет, тренируем чутьё)</span></div>';
+      eb.opts.forEach(function(ex){
+        h+='<button class="opt" style="padding:12px 14px" onclick="trEst('+ex+')">'+estLabel(ex)+'</button>';
+      });
+      h+='<div style="margin-top:8px;text-align:right"><button class="btn" style="font-size:12px" onclick="trEstSkip()">Пропустить \u2192</button></div>';
+    } else {
+      if(eb && trCur.estPicked>=0){
+        var col=trCur.estOK?'#10b981':'#f59e0b';
+        var msg=trCur.estOK?'\u2705 Порядок угадан \u2014 '+estLabel(eb.correct)+'. Теперь точное число.':'\u274C Не тот порядок. Верный \u2014 <b>'+estLabel(eb.correct)+'</b>. Привычка: сначала степень десятки, потом цифры.';
+        h+='<div style="font-size:12.5px;color:'+col+';margin-bottom:10px;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;border-left:3px solid '+col+'">'+msg+'</div>';
+      }
+      h+='<div class="arow"><input id="ain" class="ain" autocomplete="off" placeholder="Твой ответ'+(t.unit==='%'?' (%)':'')+'" onkeydown="if(event.key===\'Enter\')trSubmit()">'
+        +'<button class="btn pri" onclick="trSubmit()">OK</button></div>'
+        +'<div style="margin-top:10px;text-align:right"><button class="btn" style="font-size:12px" onclick="trGiveUp()">Не знаю \u2192</button></div>';
+    }
   }
   if(trDone){
     h+=verdictHTML(t,trCur.ok,trCur.gave,trCur.why,trCur.sec,trCur.evt,trCur.g.hack||t.hack);
