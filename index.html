@@ -1470,11 +1470,79 @@ function(){
       money(rev)+' × 12 = '+money(rev*12)+'/год.'],
       wrongs:W([{v:rev,why:'Умножь на 12.'}],rev*12)}
   ];
+},
+function(){
+  var mau=pk([60,70,80]),bs=pk([15,20,25]),at=pk([8,10,12]),comm=pk([400,500,600]);
+  var tx=mau*1e6*bs/100*at/100, rev=tx*comm, yr=rev*12;
+  var intro='Кейс: Avito запускает BNPL. '+mau+'M MAU, '+bs+'% делают покупку, attach рассрочки '+at+'%, комиссия '+comm+' руб/сделка.';
+  return [
+    {intro:intro,q:'Q1. Сколько BNPL-сделок в месяц?',a:tx,unit:'',tol:0.02,hack:'Fermi-цепочка: MAU × доля покупателей × attach. Каждый множитель режет базу.',steps:[
+      mau+'M × '+bs+'% = '+money(mau*1e6*bs/100)+' покупателей.','× attach '+at+'% = '+money(tx)+' сделок/мес.'],
+      wrongs:W([{v:mau*1e6*at/100,why:'Пропустил долю покупателей.'}],tx)},
+    {intro:intro,q:'Q2. Выручка BNPL в месяц?',a:rev,unit:'руб',tol:0.02,hack:'Выручка = сделки × комиссия.',steps:[
+      money(tx)+' × '+comm+' = '+money(rev)+'/мес.']},
+    {intro:intro,q:'Q3. Годовая выручка направления?',a:yr,unit:'руб',tol:0.02,hack:'Месяц → год = ×12.',steps:[
+      money(rev)+' × 12 = '+money(yr)+'/год.'],wrongs:W([{v:rev,why:'Это за месяц.'}],yr)},
+    {intro:intro,kind:'mcq',q:'Q4. Клиент уже на Avito, отдельного привлечения нет (CAC≈0). Что это даёт юнит-экономике?',
+      options:['LTV:CAC обычный, ~3:1','LTV:CAC → ∞: привлечение почти бесплатно — козырь embedded-финтеха','CAC высокий, направление невыгодно','Нужно больше данных'],correct:1,
+      hack:'Embedded-дистрибуция: клиент уже в продукте, CAC≈0 → LTV:CAC стремится к бесконечности. Структурное преимущество маркетплейса над банком.',
+      steps:['Банку клиент стоит CAC; Avito — почти ноль.','LTV/0 → ∞: встроенный финтех бьёт банк по экономике привлечения.']},
+    {intro:intro,kind:'mcq',q:'Q5. Ключевая 21%→16%, фондирование рассрочки дешевеет. Что с маржой (прочее равно)?',
+      options:['Маржа падает','Маржа растёт: ниже COF → дешевле фондировать рассрочку','Не меняется','Направление закроется'],correct:1,
+      hack:'BNPL фондируется деньгами под ставку, привязанную к ключевой (COF). Ключевая ↓ → COF ↓ → при той же комиссии маржа ↑.',
+      steps:['Доход (комиссия) тот же, расход на фондирование ниже.','Маржа = доход − COF → растёт.']}
+  ];
+},
+function(){
+  var w=pk([2,3,5]),bal=pk([2,3,4]),rate=pk([10,12,15]);
+  var pool=w*1e6*bal*1e3, fl=pool*rate/100;
+  var gmv=pk([10,12,20])*1e9, eco=gmv*0.02, tot=fl+eco;
+  var intro='Кейс: Avito Кошелёк. '+w+'M кошельков, остаток '+bal+'K, ставка размещения '+rate+'%. Плюс '+sp(gmv/1e9)+' млрд GMV/год уходит с карт (эквайринг 2%) в кошелёк (0%).';
+  return [
+    {intro:intro,q:'Q1. Float-доход в год?',a:fl,unit:'руб',tol:0.02,hack:'Float = (кошельки × остаток) × ставка. Сначала пул, потом процент.',steps:[
+      w+'M × '+bal+'K = '+money(pool)+' пул.','× '+rate+'% = '+money(fl)+'/год.'],
+      wrongs:W([{v:pool,why:'Это пул остатков, а не доход — умножь на ставку.'}],fl)},
+    {intro:intro,q:'Q2. Экономия на эквайринге в год?',a:eco,unit:'руб',tol:0.02,hack:'Экономия = мигрировавший объём × разница ставок (2%−0%).',steps:[
+      money(gmv)+' × 2% = '+money(eco)+'/год.']},
+    {intro:intro,q:'Q3. Суммарный эффект Кошелька в год?',a:tot,unit:'руб',tol:0.02,hack:'Сложи оба источника: float + экономия эквайринга.',steps:[
+      money(fl)+' + '+money(eco)+' = '+money(tot)+'.']},
+    {intro:intro,kind:'mcq',q:'Q4. Ключевая падает, ставка размещения снижается. Что с float-доходом?',
+      options:['Float растёт','Float падает: он прямо зависит от ставки размещения','Не меняется','Float удваивается'],correct:1,
+      hack:'Float = пул × ставка размещения. Ставка ↓ → float ↓ почти пропорционально.',
+      steps:['Пул остатков тот же, ставка ниже → доход ниже.']},
+    {intro:intro,kind:'mcq',q:'Q5. Какой источник дохода устойчивее при падении ставок?',
+      options:['Float (доход на остатки)','Экономия на эквайринге — она не зависит от ключевой ставки','Оба одинаково','Ни один'],correct:1,
+      hack:'Float тает вместе со ставкой; экономия эквайринга зависит от объёма миграции и разницы тарифов, а не от ключевой.',
+      steps:['Float ∝ ставка → уязвим.','Экономия ∝ мигрировавший GMV × Δтарифов → устойчивее.']}
+  ];
+},
+function(){
+  var cof=pk([8,10,12]),pd=pk([3,4,5]),lgd=pk([50,60]),opex=1,mar=pk([2,3]);
+  var el=rnd2(pd*lgd/100), rate=rnd2(cof+el+opex+mar);
+  var port=pk([10,20]), reserves=rnd2(port*el/100);
+  var intro='Кейс: кредит наличными. COF '+cof+'%, PD '+pd+'%, LGD '+lgd+'%, OpEx '+opex+'%, маржа '+mar+'%. Портфель '+port+' млрд.';
+  return [
+    {intro:intro,q:'Q1. Ожидаемые потери EL (%)?',a:el,unit:'%',tol:0.01,hack:'EL = PD × LGD. Риск входит произведением, не голым PD.',steps:[
+      pd+'% × '+lgd+'% = '+sp(el)+'%.'],wrongs:W([{v:pd,why:'Это PD без LGD.'}],el)},
+    {intro:intro,q:'Q2. Минимальная ставка по кредиту?',a:rate,unit:'%',tol:0.01,hack:'Ставка = COF + EL + OpEx + маржа. Собери из кубиков.',steps:[
+      cof+' + '+sp(el)+' + '+opex+' + '+mar+' = '+sp(rate)+'%.'],
+      wrongs:W([{v:cof+pd+opex+mar,tol:0.004,why:'Взял голый PD вместо EL=PD×LGD.'}],rate)},
+    {intro:intro,q:'Q3. Годовые резервы под риск по портфелю (млрд)?',a:reserves,unit:'млрд',tol:0.03,hack:'Резервы ≈ CoR × портфель, CoR ≈ EL.',steps:[
+      port+' млрд × '+sp(el)+'% = '+sp(reserves)+' млрд.']},
+    {intro:intro,kind:'mcq',q:'Q4. Ключевая выросла на 5 п.п. Что со ставкой кредита?',
+      options:['Не меняется','Растёт: COF привязан к ключевой → дороже фондирование → дороже кредит','Падает','Зависит только от PD'],correct:1,
+      hack:'COF — слагаемое ставки и движется за ключевой. Ключевая ↑ → COF ↑ → ставка ↑.',
+      steps:['Ставка = COF + EL + OpEx + маржа.','COF ↑ вслед за ключевой → ставка ↑.']},
+    {intro:intro,kind:'mcq',q:'Q5. Как снизить EL, НЕ срезая объём выдач?',
+      options:['Требовать залог (↓ LGD)','Поднять ставку всем','Урезать маркетинг','Увеличить лимиты'],correct:0,
+      hack:'EL = PD×LGD. Залог бьёт по LGD (вернём часть при дефолте), не трогая объём. Подъём ставки гонит хороших клиентов и режет объём.',
+      steps:['Залог → ниже LGD → ниже EL.','Объём не страдает (в отличие от подъёма ставки).']}
+  ];
 }
 ];
 
 /* ---------- SESSION mode ---------- */
-var seQ=[],seIdx=0,seCur=null,seDone=false,seT0=0,seC=0,seStart0=0,seMBefore=0;
+var seQ=[],seIdx=0,seCur=null,seDone=false,seT0=0,seC=0,seStart0=0,seMBefore=0,seCaseOnly=false;
 function masterySum(){var s=0;for(var i=0;i<GEN.length;i++)s+=mOf(GEN[i].id).v;return s;}
 function renderSessionStart(){
   if(ST.activeSess&&ST.activeSess.day===today()){
@@ -1492,12 +1560,22 @@ function renderSessionStart(){
     +'<div style="font-size:26px;font-weight:800;color:#f1f5f9">'+st.cur+' '+ruDays(st.cur)+'</div>'
     +'<div style="font-size:12px;color:#64748b">стрик \u00B7 рекорд '+st.best+(doneToday?' \u00B7 сегодня \u2705':'')+'</div>'
     +'</div>'
-    +'<p style="color:#94a3b8;font-size:13px;text-align:center;margin-bottom:8px">13 задач \u2248 12 минут: разминка \u2192 слабые навыки \u2192 мини-кейс из 3 связанных вопросов, как на интервью. Приложение само решает, что тренировать.</p>'
+    +'<p style="color:#94a3b8;font-size:13px;text-align:center;margin-bottom:8px">13 задач \u2248 12 минут: разминка \u2192 слабые навыки \u2192 мини-кейс из связанных вопросов, как на интервью. Приложение само решает, что тренировать.</p>'
     +'<p style="text-align:center;font-size:13px;color:#818cf8;margin-bottom:16px">Сегодня в фокусе: '+due.join(' \u00B7 ')+'</p>'
-    +'<div style="text-align:center"><button class="btn pri" style="font-size:16px;padding:14px 32px" onclick="seBegin()">'+(doneToday?'Ещё одна сессия':'Начать сессию')+' \u2192</button></div>';
+    +'<div style="text-align:center"><button class="btn pri" style="font-size:16px;padding:14px 32px" onclick="seBegin()">'+(doneToday?'Ещё одна сессия':'Начать сессию')+' \u2192</button></div>'
+    +'<div style="text-align:center;margin-top:12px"><button class="btn" onclick="seBeginCase()">\u{1F9E9} Интервью-кейс \u2014 цепочка из 5 связанных вопросов</button></div>';
 }
 function ruDays(n){var m=n%10,h=n%100;if(h>=11&&h<=14)return 'дней';if(m===1)return 'день';if(m>=2&&m<=4)return 'дня';return 'дней';}
+function seBeginCase(){
+  seCaseOnly=true;ST.activeSess=null;
+  seQ=[];
+  var cs=CASES[ri(0,CASES.length-1)]();
+  cs.forEach(function(t){seQ.push({g:null,t:t,ph:'Интервью-кейс'});});
+  seIdx=0;seC=0;seStart0=Date.now();seMBefore=masterySum();
+  lsSave();seNext(true);
+}
 function seBegin(){
+  seCaseOnly=false;
   seQ=[];
   var used=[];
   pickDue(4,'us',null).forEach(function(g){seQ.push({g:g,t:g.make(lvlOf(g.id)),ph:'Разминка'});used.push(g.id);});
@@ -1588,6 +1666,15 @@ function markSessionDone(){
 }
 function seEnd(){
   ST.activeSess=null;lsSave();
+  if(seCaseOnly){
+    launchConfetti();
+    var elc=document.getElementById('session');
+    elc.innerHTML='<div class="stitle" style="text-align:center;border:none">Кейс пройден</div>'
+      +'<p style="text-align:center;font-size:36px;font-weight:800;color:#f1f5f9;margin:8px 0">'+seC+'<span style="font-size:16px;color:#64748b"> из '+seQ.length+'</span></p>'
+      +'<p style="text-align:center;color:#64748b;font-size:12px;margin:10px 0 16px">Так выглядит интервью: один сценарий, цепочка связанных вопросов. Тренируй, пока не польётся.</p>'
+      +'<div style="text-align:center"><button class="btn pri" onclick="seBeginCase()">Ещё кейс →</button> <button class="btn" onclick="renderSessionStart()">К сессии</button></div>';
+    return;
+  }
   markSessionDone();
   launchConfetti();
   var mins=Math.round((Date.now()-seStart0)/6000)/10;
