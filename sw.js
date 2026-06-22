@@ -1,4 +1,4 @@
-const CACHE = 'fintex-v11';
+const CACHE = 'fintex-v12';
 const ASSETS = [
   '/math_dika/',
   '/math_dika/index.html',
