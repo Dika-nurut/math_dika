@@ -101,6 +101,45 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 .expl details summary{outline:none}
 .expl details summary::-webkit-details-marker{color:#818cf8}
 
+/* === solution card (v4) === */
+.sol{display:flex;flex-direction:column;gap:10px}
+.sol-ans{font-size:14px;color:#f1f5f9}
+.sol-ans b{color:#6ee7b7}
+.sol-given{font-size:12.5px;color:#94a3b8;background:rgba(148,163,184,.08);border-radius:8px;padding:8px 11px;line-height:1.55}
+.sol-given b{color:#cbd5e1}
+.sol-steps{list-style:none;margin:0;padding:0;counter-reset:st;display:flex;flex-direction:column;gap:9px}
+.sol-step{position:relative;padding:9px 12px 9px 38px;background:#0f172a;border:1px solid #1e293b;border-radius:9px;line-height:1.6}
+.sol-step::before{counter-increment:st;content:counter(st);position:absolute;left:9px;top:9px;width:20px;height:20px;border-radius:50%;background:#6366f1;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sol-think{font-size:13px;color:#e2e8f0}
+.sol-calc{font-size:13px;color:#a5b4fc;font-family:'SF Mono',ui-monospace,Menlo,monospace;margin-top:3px}
+.sol-anchor{font-size:12px;color:#fcd34d;margin-top:4px}
+.sol-anchor::before{content:"\2693 ";}
+.sol-check{font-size:12.5px;color:#6ee7b7;background:rgba(16,185,129,.09);border-left:3px solid #10b981;border-radius:0 8px 8px 0;padding:7px 11px;line-height:1.55}
+.sol-check::before{content:"\2713 \041F\0440\043E\0432\0435\0440\043A\0430: ";font-weight:700}
+.sol-traps{margin-top:2px}
+.sol-traps summary{cursor:pointer;color:#fca5a5;font-size:12.5px;font-weight:600;outline:none}
+.sol-traps summary::-webkit-details-marker{color:#f87171}
+.sol-traps ul{margin:7px 0 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.sol-traps li{font-size:12.5px;color:#fecaca;background:rgba(239,68,68,.07);border-radius:7px;padding:6px 10px;line-height:1.5}
+.sol-traps li b{color:#fca5a5}
+.sol-deep{margin-top:4px}
+.sol-deep>summary{cursor:pointer;color:#818cf8;font-size:12.5px;font-weight:600;outline:none;list-style:none}
+.sol-deep>summary::-webkit-details-marker{display:none}
+.sol-deep>summary::before{content:"\25B8 ";transition:transform .2s}
+.sol-deep[open]>summary::before{content:"\25BE ";}
+
+/* === glossary term chips === */
+.gt{border-bottom:1px dashed #6366f1;cursor:pointer;color:#c7d2fe;font-weight:600;white-space:nowrap}
+.gt:active{color:#fff}
+.gpop{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:520px;z-index:300;background:#0f172a;border:1px solid #334155;border-top:3px solid #6366f1;border-radius:16px 16px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.55);animation:gpop-up .22s ease}
+@keyframes gpop-up{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}
+.gpop-bd{position:fixed;inset:0;background:rgba(2,6,23,.6);z-index:299}
+.gpop h4{margin:0 0 2px;font-size:18px;color:#f1f5f9}
+.gpop .gpop-full{font-size:12px;color:#818cf8;letter-spacing:.3px;margin-bottom:10px}
+.gpop .gpop-one{font-size:14px;color:#e2e8f0;line-height:1.6;margin-bottom:10px}
+.gpop .gpop-f{font-size:13px;color:#a5b4fc;font-family:'SF Mono',ui-monospace,Menlo,monospace;background:#1a1a2e;border-radius:8px;padding:9px 12px;line-height:1.5;margin-bottom:10px}
+.gpop .gpop-x{display:block;width:100%;padding:11px;border-radius:9px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;font-size:14px;font-weight:600;cursor:pointer}
+
 /* cheat sheet */
 .cheat-intro{font-size:13px;color:#94a3b8;line-height:1.6;background:#1e293b;border:1px solid #334155;border-left:3px solid #6366f1;border-radius:8px;padding:12px 14px;margin-bottom:18px}
 .cheat-h{font-size:15px;font-weight:700;color:#f1f5f9;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
@@ -436,19 +475,56 @@ function fwBlock(g){
   h+='</div>';
   return h;
 }
+function methodBlock(secId){
+  var m=(typeof MET!=='undefined')&&MET[secId];
+  if(!m)return '';
+  var h='<details class="sol-deep" open style="background:rgba(99,102,241,.08);border:1px solid #312e81;border-radius:9px;padding:9px 12px"><summary style="color:#a5b4fc">&#128208; Как решать такие: '+gloss(m.name)+'</summary>';
+  h+='<ol style="margin:8px 0 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px">';
+  for(var i=0;i<m.steps.length;i++){h+='<li style="font-size:12.5px;color:#e2e8f0;line-height:1.55">'+gloss(m.steps[i])+'</li>';}
+  h+='</ol></details>';
+  return h;
+}
 function renderExplanation(section,question){
-  var correctIndex=question.correct;
-  var letter=String.fromCharCode(65+correctIndex);
-  var correctAnswer=question.options[correctIndex];
+  var ci=question.correct,letter=String.fromCharCode(65+ci);
+  var correct=question.options[ci];
   var guide=G[section.id];
-  var h='<div><strong>Правильный ответ:</strong> '+letter+'. '+correctAnswer+'</div>';
-  h+='<div style="margin-top:6px"><strong>Почему:</strong> '+question.explanation+'</div>';
-  if(question.solutionSteps && question.solutionSteps.length){
-    h+='<details style="margin-top:6px"><summary style="cursor:pointer;color:#818cf8;font-size:12px">Решение по шагам</summary><ul style="margin:4px 0 0 18px">'
-      +question.solutionSteps.map(function(step){return '<li>'+step+'</li>';}).join('')
-      +'</ul></details>';
+  var sol=question._sol;
+  var h='<div class="sol">';
+  h+='<div class="sol-ans"><b>Ответ '+letter+':</b> '+gloss(correct)+'</div>';
+  h+=methodBlock(section.id);
+  if(sol){
+    if(sol.given)h+='<div class="sol-given"><b>Дано:</b> '+gloss(sol.given)+'</div>';
+    if(sol.steps&&sol.steps.length){
+      h+='<ol class="sol-steps">';
+      for(var i=0;i<sol.steps.length;i++){var st=sol.steps[i];
+        h+='<li class="sol-step"><div class="sol-think">'+gloss(st.t)+'</div>';
+        if(st.c)h+='<div class="sol-calc">'+gloss(st.c)+'</div>';
+        if(st.a)h+='<div class="sol-anchor">'+gloss(st.a)+'</div>';
+        h+='</li>';
+      }
+      h+='</ol>';
+    }
+    if(sol.check)h+='<div class="sol-check">'+gloss(sol.check)+'</div>';
+    if(sol.traps){var tk=Object.keys(sol.traps);
+      if(tk.length){
+        h+='<details class="sol-traps"><summary>Почему другие варианты неверны</summary><ul>';
+        for(var j=0;j<tk.length;j++){var oi=+tk[j];
+          h+='<li><b>'+String.fromCharCode(65+oi)+') '+gloss(question.options[oi])+'</b> — '+gloss(sol.traps[tk[j]])+'</li>';
+        }
+        h+='</ul></details>';
+      }
+    }
+  }else{
+    h+='<div style="margin-top:2px"><b>Почему:</b> '+gloss(question.explanation||'')+'</div>';
+    if(question.solutionSteps&&question.solutionSteps.length){
+      h+='<details class="sol-traps" style="margin-top:2px"><summary style="color:#818cf8">Решение по шагам</summary><ul>'
+        +question.solutionSteps.map(function(step){return '<li style="color:#c7d2fe">'+gloss(step)+'</li>';}).join('')+'</ul></details>';
+    }
   }
-  h+=fwBlock(guide);
+  if(guide&&(guide.intuition||guide.technique||guide.connection||guide.trap)){
+    h+='<details class="sol-deep"><summary>Углубить тему (интуиция / связи / ловушка)</summary>'+fwBlock(guide)+'</details>';
+  }
+  h+='</div>';
   return h;
 }
 
@@ -559,7 +635,7 @@ function render(){
   for(var qi=0;qi<s.questions.length;qi++){
     var q=s.questions[qi],k=cur+'_'+qi,a=ans[k];
     h+='<div class="qbox"><div class="qnum">Задача '+(qi+1)+' из '+s.questions.length+'</div>';
-    h+='<div class="qtxt">'+q.q+'</div>';
+    h+='<div class="qtxt">'+gloss(q.q)+'</div>';
     for(var oi=0;oi<q.options.length;oi++){
       var c='opt';
       if(a!==undefined){c+=' dis';if(oi===q.correct)c+=' ok';else if(oi===a&&a!==q.correct)c+=' no';}
@@ -1286,7 +1362,7 @@ function renderTrain(){
   h+='<div style="text-align:center;margin:-2px 0 12px"><button class="chip'+((ST.estMode!==false)?' act':'')+'" onclick="trToggleEst()">\uD83C\uDFAF Прикидка порядка: '+((ST.estMode!==false)?'вкл':'выкл')+'</button></div>';
   h+='<div class="sline"><span>Сессия: '+sesA+(sesA?' \u00B7 '+Math.round(sesC/sesA*100)+'%':'')+'</span><span style="color:#818cf8">'+g.name+' \u00B7 L'+m.lvl+' \u00B7 цель \u2264'+targetTime(g,m.lvl)+'с</span></div>';
   h+='<div class="tcard">';
-  h+='<div class="tq">'+t.q+'</div>';
+  h+='<div class="tq">'+gloss(t.q)+'</div>';
   if(t.kind==='mcq'){
     for(var oi=0;oi<t.options.length;oi++){
       var cls='opt';
@@ -1463,7 +1539,7 @@ function renderSessionRun(){
   h+='<div class="progress" style="margin-bottom:14px"><div class="pfill" style="width:'+(seIdx/seQ.length*100)+'%"></div></div>';
   h+='<div class="tcard">';
   if(t.intro)h+='<div style="font-size:12px;color:#94a3b8;border-left:3px solid #6366f1;padding-left:10px;margin-bottom:12px">'+t.intro+'</div>';
-  h+='<div class="tq">'+t.q+'</div>';
+  h+='<div class="tq">'+gloss(t.q)+'</div>';
   if(t.kind==='mcq'){
     for(var oi=0;oi<t.options.length;oi++){
       var cls='opt';
@@ -1684,8 +1760,244 @@ function resetAll(){
   location.reload();
 }
 
+
+/* ===== injected v4 engine (glossary + solution cards) ===== */
+/* ===== v4: glossary + solution-card engine ===== */
+var TERMS={
+"PMT":{full:"Payment — аннуитетный платёж",one:"Равный ежемесячный платёж по кредиту: и проценты, и часть тела долга.",f:"PMT = P·r(1+r)ⁿ / ((1+r)ⁿ−1)"},
+"PV":{full:"Present Value — приведённая (текущая) стоимость",one:"Сколько будущие деньги стоят сегодня. Деньги завтра дешевле денег сейчас.",f:"PV = FV / (1+r)ⁿ"},
+"FV":{full:"Future Value — будущая стоимость",one:"Во что превратится сумма через n периодов под ставку r.",f:"FV = PV·(1+r)ⁿ"},
+"AF":{full:"Annuity Factor — аннуитетный коэффициент",one:"Множитель, превращающий поток равных платежей в их сегодняшнюю стоимость: PV = PMT·AF.",f:"AF = (1−(1+r)⁻ⁿ)/r"},
+"IRR":{full:"Internal Rate of Return — внутренняя норма доходности",one:"Ставка, при которой NPV проекта равен нулю. Грубо — «доходность проекта в год».",f:"NPV(IRR) = 0"},
+"XIRR":{full:"Extended IRR — IRR с реальными датами",one:"Тот же IRR, но платежи привязаны к конкретным датам, а не к ровным периодам."},
+"NPV":{full:"Net Present Value — чистая приведённая стоимость",one:"Сегодняшняя стоимость всех будущих потоков минус вложения. >0 — проект создаёт стоимость.",f:"NPV = −Inv + Σ CFₜ/(1+r)ᵗ"},
+"EAR":{full:"Effective Annual Rate — эффективная годовая ставка",one:"Реальная годовая ставка с учётом капитализации (процентов на проценты).",f:"EAR = (1+i/m)ᵐ − 1"},
+"COF":{full:"Cost of Funds — стоимость фондирования",one:"Сколько банку стоят сами деньги, которые он выдаёт в кредит. Движется за ключевой ставкой."},
+"PD":{full:"Probability of Default — вероятность дефолта",one:"Шанс, что заёмщик не вернёт долг, за период (обычно год)."},
+"LGD":{full:"Loss Given Default — доля потерь при дефолте",one:"Какую часть долга реально теряем, если дефолт случился (после залога/взыскания).",f:"LGD = 1 − recovery rate"},
+"EL":{full:"Expected Loss — ожидаемые потери",one:"В среднем сколько теряем на кредите с учётом риска.",f:"EL = PD × LGD (× EAD)"},
+"ECL":{full:"Expected Credit Loss — ожидаемые кредитные потери",one:"Резерв под потери: вероятность беды × размер беды × сумма на кону.",f:"ECL = PD × LGD × EAD"},
+"EAD":{full:"Exposure at Default — сумма под риском на момент дефолта",one:"Сколько денег «на кону»: выбранная часть плюс ожидаемая выборка лимита.",f:"EAD = drawn + CCF × undrawn"},
+"CCF":{full:"Credit Conversion Factor — коэффициент конверсии лимита",one:"Какую долю невыбранного лимита заёмщик доберёт к моменту дефолта."},
+"Cost of Risk":{full:"Cost of Risk — стоимость риска (CoR)",one:"Сколько резервов под потери приходится на портфель, в % за период.",f:"CoR = резервы / портфель"},
+"OpEx":{full:"Operating Expenses — операционные расходы",one:"Текущие расходы на обслуживание (не риск и не стоимость денег)."},
+"NIM":{full:"Net Interest Margin — чистая процентная маржа",one:"Чистый процентный доход банка относительно работающего портфеля.",f:"NIM = (%-доход − %-расход) / портфель"},
+"CET1":{full:"Common Equity Tier 1 — базовый капитал 1 уровня",one:"Самый качественный капитал банка (акции+прибыль) как подушка под риски. По Базель III минимум 4.5% от RWA.",f:"CET1 ≥ 4.5% × RWA"},
+"RWA":{full:"Risk-Weighted Assets — активы, взвешенные по риску",one:"Активы банка, переоценённые по рискованности: надёжные весят меньше, рисковые — больше."},
+"EBITDA":{full:"Earnings Before Interest, Taxes, Depreciation & Amortization",one:"Прибыль до процентов, налогов и амортизации — грубая мера операционного денежного потока."},
+"EBIT":{full:"Earnings Before Interest & Taxes — операционная прибыль",one:"Прибыль до процентов и налогов."},
+"WACC":{full:"Weighted Average Cost of Capital — средневзвешенная стоимость капитала",one:"Сколько в среднем стоит капитал компании (долг+акции). Ставка дисконта в DCF."},
+"DCF":{full:"Discounted Cash Flow — дисконтированные денежные потоки",one:"Оценка: сегодняшняя стоимость всех будущих свободных потоков компании."},
+"Terminal Value":{full:"Terminal Value — терминальная стоимость (TV)",one:"Стоимость всех потоков после прогнозного периода, свёрнутая в одно число (растущий перпетуитет).",f:"TV = CF·(1+g)/(WACC−g)"},
+"EV":{full:"Enterprise Value — стоимость бизнеса целиком",one:"Цена всего бизнеса для всех инвесторов (долг+капитал).",f:"EV = Equity + Debt − Cash"},
+"GMV":{full:"Gross Merchandise Value — валовый оборот",one:"Суммарная стоимость всех сделок на платформе (не выручка платформы!)."},
+"MDR":{full:"Merchant Discount Rate — ставка торгового эквайринга",one:"Комиссия, которую платит продавец за приём карты, в % от платежа."},
+"take rate":{full:"Take rate — доля платформы",one:"Какой % от оборота (GMV) платформа забирает себе как выручку."},
+"attach":{full:"Attach rate — доля прикрепления",one:"Доля СДЕЛОК (не юзеров!), к которым прицепили доп.продукт (рассрочку, страховку)."},
+"MAU":{full:"Monthly Active Users — месячная аудитория",one:"Уникальные пользователи за месяц."},
+"DAU":{full:"Daily Active Users — дневная аудитория",one:"Уникальные пользователи за день."},
+"stickiness":{full:"Stickiness — «липкость»",one:"Как часто месячные юзеры заходят: доля DAU в MAU.",f:"Stickiness = DAU / MAU"},
+"ARPU":{full:"Average Revenue Per User — выручка на пользователя",one:"Средняя выручка с одного юзера за период.",f:"ARPU = выручка / число юзеров"},
+"LTV":{full:"Lifetime Value — пожизненная ценность клиента",one:"Сколько прибыли приносит клиент за всё время, что остаётся с нами.",f:"LTV = ARPU × маржа × lifetime"},
+"CAC":{full:"Customer Acquisition Cost — стоимость привлечения клиента",one:"Сколько стоит привести одного платящего клиента. Сравнивают с LTV (норма LTV:CAC ≈ 3:1)."},
+"BNPL":{full:"Buy Now, Pay Later — рассрочка / оплата частями",one:"Покупка с оплатой частями; платформа берёт комиссию с продавца и/или процент."},
+"float":{full:"Float — доход на остатки",one:"Проценты, которые платформа зарабатывает, размещая остатки клиентов.",f:"Float = остатки × ставка размещения"},
+"retention":{full:"Retention — удержание",one:"Доля клиентов, оставшихся в следующем периоде.",f:"lifetime = 1/(1−retention)"},
+"churn":{full:"Churn — отток",one:"Доля ушедших клиентов за период.",f:"churn = 1 − retention; lifetime = 1/churn"},
+"lifetime":{full:"Lifetime — срок жизни клиента",one:"Сколько в среднем периодов клиент остаётся.",f:"lifetime = 1/churn = 1/(1−retention)"},
+"payback":{full:"Payback period — срок окупаемости",one:"За сколько периодов денежный поток вернёт вложение."},
+"break-even":{full:"Break-even — точка безубыточности",one:"Уровень, при котором доходы ровно покрывают расходы (прибыль = 0)."},
+"перпетуитет":{full:"Перпетуитет — вечный поток",one:"Бесконечный поток равных (или растущих) платежей.",f:"PV = CF/r или CF/(r−g)"},
+"п.п.":{full:"процентные пункты",one:"Разница двух процентов в АБСОЛЮТЕ. 20%→25% это +5 п.п., но +25% относительно.",f:"Δп.п. = a − b;  Δ% = (a−b)/b"},
+"СБП":{full:"Система быстрых платежей",one:"Межбанковские переводы по номеру телефона; для бизнеса дешевле эквайринга (~0.5% против ~2%)."},
+"ОФП":{full:"Отчёт о финансовых показателях (P&L)",one:"Модель доходов/расходов продукта: объём × чек × ставка × доля − издержки."},
+"Debt/EBITDA":{full:"Debt/EBITDA — долговая нагрузка",one:"Сколько годовых EBITDA нужно, чтобы погасить долг. >4x — уже опасно."},
+"Interest Coverage":{full:"Interest Coverage Ratio — покрытие процентов (ICR)",one:"Во сколько раз операционная прибыль покрывает процентные платежи.",f:"ICR = EBIT / проценты"}
+};
+var GKEYS=Object.keys(TERMS).sort(function(a,b){return b.length-a.length;});
+function gwc(ch){return ch&&/[A-Za-zА-Яа-яЁё]/.test(ch);}
+function gloss(s){
+  if(!s||typeof s!=='string')return s;
+  var out='',i=0,n=s.length,used={};
+  while(i<n){
+    var matched=null;
+    for(var ki=0;ki<GKEYS.length;ki++){
+      var key=GKEYS[ki];if(used[key])continue;
+      var L=key.length;
+      if(s.substr(i,L)===key){
+        var before=i===0?'':s.charAt(i-1);
+        var after=(i+L>=n)?'':s.charAt(i+L);
+        var fc=key.charAt(0),lc=key.charAt(L-1);
+        if((!gwc(fc)||!gwc(before))&&(!gwc(lc)||!gwc(after))){matched=key;break;}
+      }
+    }
+    if(matched){
+      var disp=s.substr(i,matched.length);
+      out+='<span class="gt" onclick="event.stopPropagation();showTerm(\''+matched.replace(/'/g,'')+'\')">'+disp+'</span>';
+      used[matched]=1;i+=matched.length;
+    }else{out+=s.charAt(i);i++;}
+  }
+  return out;
+}
+function showTerm(k){
+  var t=TERMS[k];if(!t)return;closeTerm();
+  var bd=document.createElement('div');bd.className='gpop-bd';bd.id='gpop-bd';bd.onclick=closeTerm;
+  var p=document.createElement('div');p.className='gpop';p.id='gpop';
+  var h='<h4>'+k+'</h4>';
+  if(t.full)h+='<div class="gpop-full">'+t.full+'</div>';
+  if(t.one)h+='<div class="gpop-one">'+t.one+'</div>';
+  if(t.f)h+='<div class="gpop-f">'+t.f+'</div>';
+  h+='<button class="gpop-x" onclick="closeTerm()">Понятно</button>';
+  p.innerHTML=h;document.body.appendChild(bd);document.body.appendChild(p);
+}
+function closeTerm(){var a=document.getElementById('gpop'),b=document.getElementById('gpop-bd');if(a)a.parentNode.removeChild(a);if(b)b.parentNode.removeChild(b);}
+function attachSolutions(){
+  for(var i=0;i<S.length;i++){
+    var m=SOL[S[i].id];if(!m)continue;
+    for(var qi=0;qi<S[i].questions.length;qi++){if(m[qi])S[i].questions[qi]._sol=m[qi];}
+  }
+}
+
+/* ===== MET: повторяемый метод на каждый ТИП задачи ===== */
+var MET={
+annuity:{name:"Аннуитет / платёж по кредиту",steps:["Месячная ставка = годовая ÷ 12.","Знаешь платёж → сумма кредита PV = PMT × AF. Знаешь сумму → PMT = PV ÷ AF.","С нуля: PMT = P·r·(1+r)ⁿ / ((1+r)ⁿ−1).","Дифференцированный платёж дешевле аннуитета по переплате (тело гасится быстрее)."]},
+irr:{name:"IRR / XIRR — доходность проекта",steps:["IRR — ставка, при которой NPV = 0.","Комиссия/удержание вперёд И ранние платежи → IRR всегда ВЫШЕ номинальной ставки.","Оценка: доходность за период → аннуализируй (по дням ×365/срок).","Между двумя ставками: IRR ≈ r₁ + (r₂−r₁) · NPV₁/(NPV₁+|NPV₂|)."]},
+pv:{name:"Дисконтирование / перпетуитет",steps:["Вечный поток: PV = CF ÷ r.","Растущий вечный: PV = CF ÷ (r − g).","Поток на N лет: PV = CF × AF.","PV обратно пропорционален ставке: ставка ↓ вдвое → цена ×2."]},
+pricing:{name:"Ценообразование кредита",steps:["Ставка = COF + EL + OpEx + маржа (собери из кубиков).","Риск входит как EL = PD × LGD — произведением, не голым PD!","При полных потерях накрути на выживших: r = нужная сумма ÷ (1−PD) − 1.","Удержанная вперёд комиссия повышает эффективную ставку для клиента."]},
+ear:{name:"EAR / сложный процент",steps:["Периодная ставка = номинал ÷ m (число капитализаций).","EAR = (1 + номинал/m)^m − 1.","Аннуализация по дням: возведи (1+период.доходность) в степень 365/срок.","EAR всегда > номинальной ставки."]},
+funding:{name:"Стоимость фондирования",steps:["Реальная цена = вся плата ÷ тем, чем РЕАЛЬНО пользовался (drawn).","Револьвер: (drawn·i + undrawn·fee) ÷ drawn.","Факторинг/дисконт: доход ÷ аванс × 365/дни.","Равномерное погашение → эффективный срок ≈ половина номинального."]},
+npv:{name:"NPV / Break-even / Payback",steps:["PV потоков = CF × AF.","NPV = PV потоков − вложение. >0 → проект окупается.","Break-even поток = вложение ÷ AF.","NPV>0 при ставке r ⟺ IRR>r. Payback = вложение ÷ годовой поток."]},
+unit:{name:"Unit-экономика / LTV",steps:["Сначала lifetime = 1 ÷ (1−retention) = 1 ÷ churn.","Потом LTV = ARPU × маржа × lifetime.","Здоровье: LTV:CAC, норма ≈ 3:1.","Падение retention бьёт по LTV НЕЛИНЕЙНО (через 1/churn)."]},
+ecl:{name:"ECL / кредитный риск",steps:["ECL = PD × LGD × EAD (вероятность × доля потери × сумма на кону).","EAD = drawn + CCF × undrawn.","Залог снижает LGD (не PD!) → ниже ECL.","Cost of Risk = резервы ÷ портфель."]},
+funnels:{name:"Воронки и метрики",steps:["Конверсии ПЕРЕМНОЖАЮТСЯ (не складываются).","Сквозная = произведение шагов × вход.","п.п. = простая разность; % = разность ÷ базу. Это РАЗНЫЕ числа.","Stickiness = DAU ÷ MAU."]},
+dcf:{name:"DCF / оценка",steps:["Terminal Value = CF·(1+g) ÷ (WACC−g). Сначала нарасти поток на g!","EV = EBITDA × мультипликатор.","Equity Value = EV − Debt + Cash."]},
+banking:{name:"Банковские метрики",steps:["NIM = (%-доход − %-расход) ÷ портфель.","CET1 ≥ 4.5% × RWA (Базель III, базовый порог).","Interest Coverage = EBIT ÷ проценты.","Debt/EBITDA > 4x — высокая (опасная) нагрузка."]},
+mental:{name:"Устный счёт",steps:["Рост в %: (новое − старое) ÷ старое.","% от числа: найди 1% (запятая на 2 влево), потом домножь.","±x% подряд = −(x)² от исходного (всегда минус).","Маржа/окупаемость = делёж; округляй базу до круглого числа."]},
+ofp:{name:"P&L платёжного продукта (ОФП)",steps:["Выручка = объём × чек × ставка × доля платформы — проговори ВСЕ звенья до счёта.","Эффект миграции считай ТОЛЬКО по переведённому объёму × Δставки.","Расход на эквайринг = ставка × оборот по картам.","Месяц → год = ×12."]},
+wallet:{name:"Экономика кошелька",steps:["Float = (юзеры × средний баланс) × ставка размещения.","Экономия эквайринга = мигрировавший объём × Δкомиссий.","Снижение ключевой в п.п. ≠ падение float в %: база — ставка размещения, не ключевая.","Сначала пул/объём, потом процент."]},
+attach:{name:"Attach rate",steps:["Выручка = сделки × attach × комиссия.","attach считается от СДЕЛОК, не от юзеров.","Break-even attach = (расходы ÷ комиссия) ÷ всего сделок.","Рост в разы = новое ÷ старое (не путать с +п.п.)."]},
+cross:{name:"Cross-sell / LTV+",steps:["Новый LTV = базовый + Σ(P × ценность) — добавляй probability-weighted, не весь доход.","Меняется retention → сначала пересчитай lifetime, потом весь LTV.","CAC = 0 (embedded) → LTV:CAC → ∞."]},
+fermi:{name:"Быстрые оценки (Fermi)",steps:["Декомпозируй слева направо: база × конверсия × чек × частота × ставка.","Грубо округляй, держи ПОРЯДОК десятки (млн/млрд).","Год = ×12 в конце.","Правило 72: годы до удвоения ≈ 72 ÷ ставку%."]}
+};
+
+/* ===== SOL: карточки решений (применение метода к числам) ===== */
+var SOL={
+annuity:{
+0:{given:"Годовая ставка 24%, нужна месячная ставка r.",steps:[{t:"Номинальная годовая делится по месяцам поровну.",c:"r = 24% ÷ 12 = 2%",a:"Годовую → месячную всегда ÷12 (срок 6 мес тут не нужен)."}],check:"2% в месяц для потребкредита правдоподобно.",traps:{0:"÷24 вместо ÷12.",2:"÷6 (срок), а не ÷12 (месяцев в году).",3:"оставили годовую, не перевели."}},
+1:{given:"Платёж 50K/мес, AF=5.0. Найти сумму кредита PV.",steps:[{t:"Обратная аннуитетная формула.",c:"PV = PMT × AF = 50,000 × 5.0 = 250,000",a:"PV = PMT × AF: AF свернул всю дисконт-математику в один множитель."}],check:"≈5 платежей в сегодняшних деньгах — порядок верный.",traps:{0:"×2 вместо ×5.",2:"×10, перепутали AF.",3:"÷AF вместо ×AF."}},
+2:{given:"Сравниваем аннуитет (равный платёж) и дифференцированный (равное тело).",steps:[{t:"Проценты капают на ОСТАТОК долга.",c:"Дифф: тело = ОД/n → остаток падает быстрее → меньше процентов"},{t:"У аннуитета первые платежи почти одни проценты, тело гасится медленно.",c:"переплата: дифф < аннуитет",a:"Быстрее гасишь тело → меньше переплата. Дифф всегда ≤ аннуитет."}],check:"Дифф дороже в первые месяцы, но дешевле суммарно — верно.",traps:{0:"у аннуитета переплата наоборот больше.",2:"скорость гашения тела разная → не одинаково.",3:"знак не зависит от ставки."}},
+3:{given:"P=2.4 млн, r=1.5%/мес, n=24, дано (1.015)²⁴=1.43.",steps:[{t:"Полная формула PMT = P·r·(1+r)ⁿ/((1+r)ⁿ−1), подставляем 1.43.",c:"PMT = 2.4M × 0.015×1.43 / (1.43−1)"},{t:"Числитель и знаменатель.",c:"= 2.4M × 0.02145 / 0.43 = 2.4M × 0.0499 ≈ 120K",a:"В уме: множитель ≈ r/(1−1/1.43) ≈ 0.015/0.30 ≈ 0.05 → ×2.4M ≈ 120K."}],check:"120K×24=2.88M против тела 2.4M → переплата ~20% за 2 года под 18% — ок.",traps:{0:"забыли множитель (1+r)ⁿ в числителе.",1:"это тело/24 без процентов.",3:"завысили, перепутали знаменатель."}}
+},
+irr:{
+0:{given:"Ставка 20%/год ПЛЮС разовая комиссия 3%, тело за 6 мес.",steps:[{t:"Комиссия удержана сразу → клиент получил меньше, платит как с полной суммы.",c:"эффективная отдача > 20%"},{t:"Плюс короткий срок: деньги возвращаются быстро.",c:"IRR > 20%",a:"Любая комиссия/удержание вперёд → IRR всегда ВЫШЕ договорной ставки."}],check:"Комиссия и быстрый возврат всегда толкают IRR вверх — знак однозначен.",traps:{0:"игнорирует комиссию.",2:"комиссия не может снизить доходность кредитора.",3:"нельзя просто 20%+3%, эффект больше."}},
+1:{given:"Рассрочка: переплата 2,200 ₽ на 20K за 6 недель (≈1.5 мес).",steps:[{t:"Доходность за период.",c:"2,200 / 20,000 ≈ 11% за ~1.5 мес"},{t:"Тело гасится частями → средний остаток меньше → месячная IRR ~8–10%, в годовые через степень.",c:"≈ (1.08)¹² − 1 ≈ 60–80%",a:"Короткие рассрочки = трёхзначные годовые: малая переплата × высокая частота."}],check:"BNPL реально даёт 50–100% годовых — попадаем.",traps:{0:"это ставка за период, не годовая.",1:"недооценка частоты.",3:"перебор для 11% за полтора месяца."}},
+2:{given:"NPV=+500 при 3%, NPV=−100 при 5%. IRR между ними (где NPV=0).",steps:[{t:"Линейная интерполяция: доля интервала, которую надо пройти до нуля.",c:"доля = 500 / (500+100) = 0.83"},{t:"Прибавляем долю интервала (2 п.п.) к нижней ставке.",c:"IRR ≈ 3% + 2%×0.83 = 4.67%",a:"IRR ближе к той ставке, где NPV ближе к нулю (тут к 5%)."}],check:"4.7% между 3% и 5%, ближе к 5% (|−100|<500) — верно.",traps:{0:"смещение вниз без пропорции.",1:"ровная середина игнорирует разный размер NPV.",3:"при 5% NPV уже отрицателен — это не ноль."}},
+3:{given:"Выдали 100K, вернулось 120K, но 24 еженедельными платежами по 5K.",steps:[{t:"Если бы всё вернулось в конце: 20K на 100K за полгода ≈ 40% год.",c:"20K/100K = 20% за 6 мес ≈ 40% (грубо)"},{t:"Деньги приходят ЕЖЕНЕДЕЛЬНО и реинвестируются → реальная годовая выше.",c:"XIRR > 40%",a:"Чем раньше платежи, тем выше IRR/XIRR при той же сумме."}],check:"Ранние потоки всегда повышают доходность.",traps:{0:"это оценка при возврате одним платежом в конце.",2:"ранние платежи не снижают доходность.",3:"даты и суммы известны — определить можно."}}
+},
+pv:{
+0:{given:"Вечный поток 1 млн/год, ставка 20%.",steps:[{t:"Перпетуитет: стоимость = платёж ÷ ставку.",c:"PV = 1,000,000 / 0.20 = 5,000,000",a:"÷ставку = ×(1/r). При 20% это ×5."}],check:"5M·20% = 1M — обратная проверка сходится.",traps:{1:"×(1/0.05), перепутали ставку.",2:"забыли поделить на ставку.",3:"взяли 1/0.10 вместо 1/0.20."}},
+1:{given:"Растущий перпетуитет: первый поток 1M, рост g=5%, ставка 20%.",steps:[{t:"Формула Гордона: делим на (r − g), не на r.",c:"PV = 1M / (0.20 − 0.05) = 1M / 0.15"},{t:"Считаем.",c:"= 6.67M",a:"Рост в знаменателе → стоимость выше обычного перпетуитета (6.67 > 5)."}],check:"6.67M > 5M (без роста) — рост обязан повышать стоимость.",traps:{0:"это БЕЗ роста (÷0.20).",2:"делили на (0.20−0.06) или иную g.",3:"перепутали ставку."}},
+2:{given:"Вложить 80 млн сразу, получать 25 млн/год 5 лет, AF(12%,5)=3.60.",steps:[{t:"Сегодняшняя стоимость потока = поток × AF.",c:"PV = 25 × 3.60 = 90 млн"},{t:"NPV = приведённые поступления − вложение.",c:"NPV = −80 + 90 = +10 млн",a:"AF сворачивает 5 дисконтирований в одно умножение."}],check:"NPV>0 → ставку 12% проект перекрывает.",traps:{1:"перепутан знак.",2:"забыли вычесть вложение 80.",3:"0 было бы при экономии ровно 80/3.60≈22.2M."}},
+3:{given:"Перпетуитет с потоком 100. Ставка 20% → 10%.",steps:[{t:"PV = CF/r для обеих ставок.",c:"100/0.20=500 → 100/0.10=1000"},{t:"Ставка вдвое ниже → знаменатель вдвое меньше → цена вдвое больше.",c:"×2 (удвоилась)",a:"PV перпетуитета обратно пропорционален ставке."}],check:"Длинные активы дорожают при падении ставок — макрологика сходится.",traps:{1:"перепутали направление (ставка ↓ → цена ↑).",2:"PV прямо зависит от ставки.",3:"спутали изменение ставки в п.п. с ценой."}}
+},
+pricing:{
+0:{given:"COF=8%, PD=3%, LGD=50%, OpEx=1%, маржа=2%.",steps:[{t:"Риск входит как EL = PD × LGD, не голым PD.",c:"EL = 3% × 50% = 1.5%"},{t:"Складываем все слагаемые ставки.",c:"8 + 1.5 + 1 + 2 = 12.5%",a:"Ставка = деньги + риск(EL) + операционка + наценка."}],check:"Наценка над COF ~4.5 п.п. — реалистично.",traps:{0:"потеряли слагаемое.",2:"добавили PD целиком (3%) вместо EL (1.5%).",3:"это только COF, без риска и маржи."}},
+1:{given:"PD=10%, LGD=100%, нужен +15% на выживших.",steps:[{t:"Из 100 выживает 90. С них собрать тело 100 + 15% = 115.",c:"90 × (1+r) = 115"},{t:"Решаем относительно r.",c:"1+r = 115/90 → r = 25/90 = 27.8%",a:"При полных потерях накручивай на выживших: дели на (1−PD)."}],check:"27.8% >> 15%: высокий риск требует крутой ставки.",traps:{0:"target без учёта потерь.",1:"25/100 — забыли, что собираем с 90.",3:"это PD, не ставка."}},
+2:{given:"Кредит 500K, комиссия 3% удержана сразу.",steps:[{t:"Удержанная комиссия.",c:"3% × 500K = 15,000"},{t:"На руки = тело − удержание.",c:"500,000 − 15,000 = 485,000",a:"«Удержана» = вычли сразу; проценты платят со всех 500K → эфф. ставка выше."}],check:"485K < 500K на 15K = ровно 3%.",traps:{0:"комиссию не удержали.",2:"прибавили вместо вычитания.",3:"вычли 12% вместо 3%."}},
+3:{given:"Ключевая ставка 12% → 21%.",steps:[{t:"COF банка привязан к ключевой: фондирование дорожает вслед.",c:"ключевая ↑ → COF ↑"},{t:"COF — слагаемое в ставке кредита.",c:"кредиты дорожают",a:"Ключевая ↑ → дороже фондирование → дороже кредиты."}],check:"Рост ставок ЦБ всегда удорожает кредит.",traps:{0:"COF прямо завязан на ключевую.",2:"COF растёт, не падает.",3:"дорожает всё фондирование, не только депозиты."}}
+},
+ear:{
+0:{given:"Номинал 24%/год, капитализация ежемесячная.",steps:[{t:"Месячная 2% начисляется 12 раз на наросшую сумму.",c:"EAR = (1.02)¹² − 1"},{t:"(1.02)¹² ≈ 1.268.",c:"EAR ≈ 26.8%",a:"Капитализация всегда делает EAR > номинала."}],check:"26.8% > 24% — проценты на проценты добавили ~2.8 п.п.",traps:{0:"это номинал без капитализации.",2:"переоценка эффекта.",3:"капитализация не снижает ставку."}},
+1:{given:"Доходность 5% за 90 дней, аннуализировать сложным %.",steps:[{t:"В году ≈ 365/90 ≈ 4.06 периодов; складываем степенью.",c:"(1.05)^(365/90) = (1.05)^4.06"},{t:"≈ 1.216.",c:"EAR ≈ 21.6%",a:"Аннуализация по дням: степень = 365/срок."}],check:"21.6% чуть больше 5%×4=20% за счёт капитализации.",traps:{0:"простое ×4 без капитализации.",2:"не аннуализировали.",3:"неверная степень."}},
+2:{given:"1 млн под 18%/год, капитализация ежемесячная, 3 года = 36 мес.",steps:[{t:"Месячная 1.5%, за 36 мес.",c:"(1.015)³⁶ ≈ 1.709"},{t:"Умножаем на тело.",c:"1M × 1.709 ≈ 1.7 млн",a:"Правило 72: 72/18≈4 года до удвоения — за 3 года ещё не удвоились."}],check:"Выросли в 1.7×, до удвоения не дотянули — логично.",traps:{0:"простой процент 18%×3=54%.",2:"занижение.",3:"2.0 млн было бы за ~4 года."}}
+},
+funding:{
+0:{given:"Лимит 200, drawn 50, undrawn 150. Процент 5% на drawn, fee 2% на резерв.",steps:[{t:"Платим и за выбранное, и за резерв.",c:"50×5% + 150×2% = 2.5 + 3 = 5.5"},{t:"Эфф. ставка считается к тому, чем РЕАЛЬНО пользуемся.",c:"5.5 / 50 = 11%",a:"Дели полную плату на DRAWN, не на лимит."}],check:"11% >> 5%: за резерв тоже платим — большой лимит дорог.",traps:{0:"учли только процент, забыли fee.",1:"просто сложили 5%+2%, без весов.",3:"взяли только комиссию."}},
+1:{given:"Фактор дал 48K, через 30 дней получит 50K.",steps:[{t:"Доходность за период = заработок / вложено.",c:"2K / 48K = 4.17% за 30 дней"},{t:"Аннуализируем по дням.",c:"4.17% × 365/30 = 50.7%",a:"Дели на вложенное (48K), умножай на 365/дни."}],check:"50%+ годовых на факторинге — реалистично.",traps:{0:"это ставка за 30 дней.",1:"аннуализировали неверно.",3:"÷50K и/или ×12 без поправки на дни."}},
+2:{given:"Долг 1M гасится равномерно еженедельно 180 дней.",steps:[{t:"Равномерное гашение → остаток падает линейно от 1M до 0 → средний ≈ половина.",c:"средний остаток ≈ 50% срока"},{t:"Эффективная дюрация ≈ половина срока.",c:"≈ 180/2 = 90 дней",a:"Равномерная амортизация → эфф. срок ≈ половина номинального."}],check:"90 = половина 180, как ждём.",traps:{0:"это весь срок без амортизации.",2:"четверть — слишком мало.",3:"спутали с числом недель."}}
+},
+npv:{
+0:{given:"Вложить 100M, экономить 30M/год 5 лет, AF=3.60.",steps:[{t:"PV экономии = поток × AF.",c:"30 × 3.60 = 108M"},{t:"NPV = PV − вложение.",c:"−100 + 108 = +8M",a:"PV через AF, потом минус инвест."}],check:"NPV>0 → проект бьёт ставку 12%.",traps:{1:"перепутан знак.",2:"забыли дисконт и вложение.",3:"0 было бы при потоке 100/3.60≈27.8M."}},
+1:{given:"Та же сделка: при каком потоке NPV=0?",steps:[{t:"NPV=0 ⟺ CF × AF = вложение.",c:"CF = 100 / 3.60"},{t:"Считаем.",c:"= 27.8M/год",a:"Break-even поток = вложение / AF."}],check:"27.8M < фактических 30M → запас есть (NPV>0).",traps:{0:"это фактический поток, не порог.",2:"×AF вместо ÷AF.",3:"это вложение целиком, без дисконта."}},
+2:{given:"При ставке 12% NPV = +8M > 0.",steps:[{t:"IRR — где NPV=0; NPV падает с ростом ставки.",c:"NPV(12%) = +8M > 0"},{t:"Раз при 12% ещё плюс — обнулится при большей ставке.",c:"IRR > 12%",a:"NPV>0 при r ⟺ IRR>r. Всегда."}],check:"Положительный NPV при 12% железно означает IRR>12%.",traps:{0:"тогда NPV был бы 0.",2:"тогда при 12% NPV был бы отрицательным.",3:"путает значение NPV (8M) со ставкой."}},
+3:{given:"Вложили 50M, возврат 50M за первый год.",steps:[{t:"Payback — когда накопленный поток покроет вложение.",c:"50M / 50M = 1 год",a:"Payback = вложение / годовой поток (при ровном потоке)."}],check:"Один годовой поток = одно вложение → 1 год.",traps:{0:"поток приходит в конце года, не в середине.",2:"задвоили срок.",3:"деньги возвращаются за год, не сразу."}}
+},
+unit:{
+0:{given:"ARPU=5K/год, маржа=40%, retention=75%.",steps:[{t:"Сначала lifetime = 1/(1−retention).",c:"1/0.25 = 4 года"},{t:"LTV = ARPU × маржа × lifetime.",c:"5,000 × 0.4 × 4 = 8,000",a:"Порядок: lifetime → два умножения. ret 75%→4 года."}],check:"8K при выручке 5K/год и марже 40% за 4 года — сходится.",traps:{1:"забыли маржу (5K×4).",2:"взяли один год.",3:"завышенный lifetime или потеряна маржа."}},
+1:{given:"CAC=3K, LTV=9K.",steps:[{t:"Отношение LTV к CAC.",c:"9K / 3K = 3:1"},{t:"Ориентир: 3:1 здорово (1:1 в минус, 5:1+ — недоинвестируем в рост).",c:"3:1 → ОК",a:"Норма LTV:CAC ≈ 3:1."}],check:"Окупаем привлечение втрое — здоровый юнит.",traps:{0:"3:1 это норма, а не грань.",2:"перевернули дробь (CAC/LTV).",3:"это не 9:1."}},
+2:{given:"Retention 80% → 60%, прочее не меняется.",steps:[{t:"LTV ∝ lifetime = 1/(1−ret). Считаем оба.",c:"1/0.2 = 5 → 1/0.4 = 2.5"},{t:"LTV меняется как lifetime.",c:"5 → 2.5 = вдвое меньше",a:"−20 п.п. retention здесь = −50% LTV. Нелинейно!"}],check:"Небольшое на вид падение удержания обрушило LTV вдвое.",traps:{1:"посчитали линейно от 80/60.",2:"спутали п.п. удержания с изменением LTV.",3:"lifetime прямо зависит от retention."}}
+},
+ecl:{
+0:{given:"PD=5%, LGD=80%, EAD=2M.",steps:[{t:"ECL = PD × LGD × EAD.",c:"0.05 × 0.80 × 2,000,000"},{t:"Считаем.",c:"= 0.04 × 2M = 80,000",a:"ECL = вероятность беды × размер беды × сколько на кону."}],check:"80K на 2M = 4% — для рискового кредита нормально.",traps:{1:"PD×EAD без LGD (5%×2M).",2:"ошибка в произведении PD×LGD (взяли вдвое).",3:"потеряли множитель (×10)."}},
+1:{given:"Два кредита, одинаковый PD: с залогом авто и без залога.",steps:[{t:"Залог снижает LGD: при дефолте часть денег вернут.",c:"залог → LGD ниже"},{t:"При равном PD и EAD ниже LGD = ниже ECL.",c:"ECL(без залога) > ECL(с залогом)",a:"Залог бьёт по LGD, не по PD."}],check:"Беззалоговый рискованнее по потерям — логично.",traps:{0:"у залогового LGD и ECL ниже.",2:"LGD различается → не одинаково.",3:"при равном EAD решает LGD."}},
+2:{given:"Портфель 10 млрд, резервы 350M.",steps:[{t:"Cost of Risk = резервы / портфель.",c:"350M / 10,000M = 0.035"},{t:"В процентах.",c:"= 3.5%",a:"Следи за разрядами (млн vs млрд)."}],check:"3.5% — высоковато, типично для необеспеченного портфеля.",traps:{1:"ошибка на разряд (÷10).",2:"ошибка на разряд (×10).",3:"перевернули дробь."}},
+3:{given:"Лимит 1M, drawn 400K, undrawn 600K, CCF=50%.",steps:[{t:"EAD = drawn + CCF × undrawn.",c:"400K + 50% × 600K"},{t:"Считаем.",c:"= 400K + 300K = 700K",a:"Невыбранный лимит — тоже частично риск."}],check:"700K между drawn(400K) и лимитом(1M) — верно.",traps:{0:"учли только drawn.",2:"взяли весь лимит (CCF=100%).",3:"взяли только невыбранное."}}
+},
+funnels:{
+0:{given:"Пять конверсий 80%→10%→65%→45%→70% на 10,000 входящих.",steps:[{t:"Конверсии ПЕРЕМНОЖАЮТСЯ.",c:"0.8×0.1×0.65×0.45×0.7 ≈ 0.0164"},{t:"Умножаем на вход.",c:"10,000 × 0.0164 ≈ 164",a:"Сквозная = произведение шагов. Узкий шаг (10%) задаёт порядок."}],check:"164 из 10K ≈ 1.6% — правдоподобно.",traps:{1:"ошибка на разряд (забыли множитель).",2:"лишний ноль вниз.",3:"сложили/усреднили вместо перемножения."}},
+1:{given:"MAU=5M, DAU=400K.",steps:[{t:"Stickiness = DAU / MAU.",c:"400K / 5M = 0.08"},{t:"В процентах.",c:"= 8%",a:"DAU/MAU. 8% ≈ заходит 2–3 дня в месяц."}],check:"8% — для финтех-приложения нормально.",traps:{1:"перевернули (MAU/DAU = 12.5 — это разы).",2:"ошибка на разряд.",3:"ошибка на разряд вниз."}},
+2:{given:"Доля карт 58% → 53%. Разделить п.п. и %.",steps:[{t:"Процентные пункты — простая разность.",c:"58 − 53 = 5 п.п."},{t:"Относительное изменение — к базе.",c:"5 / 58 = 8.6% → −8.6%",a:"п.п. = вычитание; % = делёж на базу."}],check:"«−5 п.п.» и «−8.6%» описывают одно и то же.",traps:{0:"спутали п.п. с процентом (делить на 58).",2:"поменяли местами п.п. и %.",3:"взяли значение, а не разность."}},
+3:{given:"Approval rate 35% → 50%. На сколько вырастут выдачи?",steps:[{t:"Выдачи ∝ approval. Рост = новое/старое − 1.",c:"50/35 = 1.43"},{t:"То есть +43%.",c:"+43%",a:"15 п.п. на базе 35 = +43%, НЕ +15%."}],check:"+43% от +15 п.п. — нелинейность от низкой базы.",traps:{0:"спутали п.п. (15) с ростом.",2:"это новое значение approval, не рост.",3:"это изменение ставки, а не рост выдач."}}
+},
+dcf:{
+0:{given:"Поток года 5 = 500K, g=2%, WACC=10%.",steps:[{t:"Сначала нарасти поток на g (берём год t+1).",c:"500K × 1.02 = 510K"},{t:"TV = поток(t+1) / (WACC − g).",c:"510K / 0.08 = 6.375M",a:"TV = CF·(1+g)/(WACC−g). Не забудь нарастить."}],check:"6.375M ≈ 12.75× потока — нормальный терминальный мультипликатор.",traps:{0:"не нарастили поток (500K/0.08).",2:"÷0.10 без вычета g.",3:"перепутали разряд/ставку."}},
+1:{given:"EBITDA=200M, мультипликатор 10x.",steps:[{t:"EV = EBITDA × мультипликатор.",c:"200M × 10 = 2,000M",a:"EV/EBITDA — самый ходовой быстрый способ оценки."}],check:"2,000M = 2 млрд при EBITDA 200M и 10× — прямой счёт.",traps:{0:"забыли умножить на мультипликатор.",2:"÷ вместо ×."}},
+2:{given:"EV=2,000M, Cash=300M, Debt=800M.",steps:[{t:"Equity = EV − Debt + Cash.",c:"2,000 − 800 + 300"},{t:"Считаем.",c:"= 1,500M",a:"EV→Equity: минус долг, плюс кэш."}],check:"1,500M < EV 2,000M, т.к. долг (800) > кэша (300).",traps:{1:"прибавили долг вместо вычитания.",2:"вычли и долг, и кэш.",3:"вычли кэш вместо прибавления."}}
+},
+banking:{
+0:{given:"%-доход 50M, %-расход 35M, портфель 500M.",steps:[{t:"Чистый процентный доход.",c:"50M − 35M = 15M"},{t:"NIM = чистый доход / портфель.",c:"15M / 500M = 3%",a:"Сначала чистый доход, потом дели на портфель."}],check:"NIM 3% — типично для банка.",traps:{1:"валовый 50M/500M без вычета расхода.",2:"взяли расход 35M/500M.",3:"прочитали 15M как 15%, забыв масштаб."}},
+1:{given:"RWA=100 млрд. Базель III, минимальный CET1.",steps:[{t:"CET1_min = 4.5% × RWA.",c:"4.5% × 100 = 4.5 млрд",a:"Базовый порог CET1 — 4.5% RWA."}],check:"4.5% от 100 млрд — прямой счёт.",traps:{1:"6% — это Tier 1, не CET1.",2:"8% — общий капитал, не CET1.",3:"это сам RWA, не капитал."}},
+2:{given:"EBIT=200M, проценты=80M.",steps:[{t:"ICR = EBIT / проценты.",c:"200M / 80M = 2.5",a:"Interest Coverage. <1.5–2 — тревога."}],check:"2.5× покрытия — приемлемо, без большого запаса.",traps:{1:"перевернули (80/200).",2:"это разность, не отношение.",3:"сложили вместо деления."}},
+3:{given:"Debt/EBITDA = 6x.",steps:[{t:"Сколько лет EBITDA уйдёт на долг. Ориентир >4x — много.",c:"6x > 4x → опасно"},{t:"Чем выше, тем рискованнее.",c:"высокая долговая нагрузка",a:"≤3x комфортно, 4x граница, >4x тревожно."}],check:"6 лет EBITDA на долг — действительно много.",traps:{0:"6x это высокая нагрузка.",1:"норма ближе к ≤3x.",3:"6x уже однозначно много."}}
+},
+mental:{
+0:{given:"Прибыль 29 → 104 млрд. Рост в %.",steps:[{t:"Прирост / база.",c:"104 − 29 = 75"},{t:"Делим на старое.",c:"75 / 29 ≈ 2.59 → +259%",a:"Рост в % = (новое−старое)/старое. 75/29 ≈ 75/30 = 2.5."}],check:"Почти ×3.6 → +259% (база остаётся).",traps:{0:"грубо вниз (×3).",2:"взяли прирост (75) как процент, забыли поделить.",3:"взяли новое значение как процент."}},
+1:{given:"Approval 35% → 50%. п.п. и %.",steps:[{t:"п.п. = разность.",c:"50 − 35 = 15 п.п."},{t:"% = разность / база.",c:"15/35 ≈ 43% → +43%",a:"Одно событие — два числа: +15 п.п. И +43%."}],check:"15 п.п. на базе 35 даёт большой относительный +43%.",traps:{0:"относительный рост ≠ п.п.",2:"поменяли местами.",3:"это новое значение, не разность."}},
+2:{given:"Найти 4% от 30,000.",steps:[{t:"Сначала 1% (÷100), потом ×4.",c:"1% = 300 → ×4 = 1,200",a:"Найди 1% (запятая на 2 влево), потом домножь."}],check:"1,200 из 30,000 — правдоподобно для 4%.",traps:{1:"ошибка на разряд (0.4%).",2:"это 40%.",3:"это 10%."}},
+3:{given:"GMV 2.9 → 4.16 трлн. Рост.",steps:[{t:"Прирост / база.",c:"4.16 − 2.9 = 1.26"},{t:"Делим, округляя.",c:"1.26/2.9 ≈ 1.3/3 ≈ 0.43 → +43%",a:"Округляй: 1.26/2.9 ≈ 1.3/3."}],check:"+43% (4.16 < 1.5×2.9=4.35) — сходится.",traps:{0:"недооценка (÷4 вместо /2.9).",2:"взяли прирост 1.26 как 126%.",3:"+50% было бы до 4.35 трлн."}},
+4:{given:"Рост +20%, затем падение −20% от новой величины.",steps:[{t:"Проценты от текущего значения, считаем по шагам.",c:"100 → ×1.2 = 120 → ×0.8 = 96"},{t:"Итог к старту.",c:"96 vs 100 = −4%",a:"+x% затем −x% = −(x)²: −(0.2)² = −4%. Всегда минус."}],check:"Симметричные ±20% не возвращают к 100 — классика.",traps:{0:"наивно: проценты от РАЗНЫХ баз.",2:"знак минус (падение от большего).",3:"недооценка эффекта."}},
+5:{given:"Выручка 101 млрд, прибыль 39 млрд. Маржа.",steps:[{t:"Маржа = прибыль / выручка.",c:"39 / 101 ≈ 40/100 = ~39%",a:"Округли знаменатель до 100."}],check:"~39% чистой маржи — высокая, как у зрелой платформы.",traps:{0:"это (1−маржа).",2:"перевернули (101/39).",3:"это выручка/прибыль, не маржа."}},
+6:{given:"СБП 26.5 трлн/квартал. За год.",steps:[{t:"Год = 4 квартала.",c:"26.5 × 4 = 106 трлн",a:"Квартал → год = ×4."}],check:"106 ≈ 4×26.5 — прямой счёт.",traps:{0:"÷4 вместо ×4.",1:"оставили квартал.",3:"×2 (полугодие)."}},
+7:{given:"Цена покупки 151 млрд, прибыль 39/год. Окупаемость.",steps:[{t:"Окупаемость = цена / годовая прибыль.",c:"151 / 39 ≈ 160/40 = 4"},{t:"≈ 4 года.",c:"~4 года",a:"Окупаемость = цена/прибыль = P/E. Округляй: 160/40."}],check:"P/E ≈ 4 — дёшево; счёт сходится.",traps:{0:"P/E≈2, занижено вдвое.",2:"завышено.",3:"P/E≈10, не наш случай."}}
+},
+ofp:{
+0:{given:"500K tx/мес, чек 30K, MDR 4%, доля Avito 40%.",steps:[{t:"Выручка с ОДНОЙ сделки: чек × MDR × доля.",c:"30K × 4% × 40% = 480 ₽/tx"},{t:"Умножаем на число сделок.",c:"500K × 480 = 240M",a:"Цепочка: tx × чек × ставка × доля. Доля режет MDR до своего куска."}],check:"~480₽ с каждой сделки — реалистично для BNPL.",traps:{0:"доля 20% или потеряли множитель.",2:"лишний делёж.",3:"забыли долю 40% (взяли весь MDR)."}},
+1:{given:"Эквайринг 2%, GMV картами 50 млрд/год.",steps:[{t:"2% от 50 млрд.",c:"50 млрд × 2% = 1 млрд",a:"1% от 50 млрд = 0.5 млрд, ×2 = 1 млрд."}],check:"1 млрд на 50 млрд = ровно 2%.",traps:{0:"ошибка на разряд (0.2%).",1:"взяли 1%, не 2%.",3:"взяли 10%."}},
+2:{given:"20% оборота с карт (2%) на СБП (0.5%). GMV=50 млрд.",steps:[{t:"Сначала переведённый объём.",c:"20% × 50 млрд = 10 млрд"},{t:"Экономия = объём × разница ставок.",c:"10 млрд × (2%−0.5%) = 10 × 1.5% = 150M",a:"Экономия миграции = переведённый объём × Δставки, не весь GMV!"}],check:"150M на 10 млрд при разнице 1.5 п.п. — сходится.",traps:{1:"от всего 50 млрд или разряд.",2:"разница 3% или весь объём.",3:"грубая ошибка разрядов."}},
+3:{given:"Партнёр (25% выдач) уходит. Выдачи 2 млрд/мес, комиссия 3%.",steps:[{t:"Уходящий объём.",c:"25% × 2 млрд = 500M/мес"},{t:"Комиссия за месяц, потом ×12.",c:"500M × 3% = 15M/мес → 180M/год",a:"Доля объёма → комиссия → год (×12)."}],check:"15M/мес с 500M при 3% → 180M/год.",traps:{0:"это потеря за МЕСЯЦ.",1:"неверный пересчёт на год.",3:"весь объём, забыли комиссию 3%."}}
+},
+wallet:{
+0:{given:"5M кошельков, баланс 2K, ставка размещения 15%.",steps:[{t:"Сначала пул остатков.",c:"5M × 2K = 10 млрд"},{t:"Float = пул × ставка.",c:"10 млрд × 15% = 1.5 млрд",a:"Float = (юзеры×баланс) × ставка. Сначала пул, потом процент."}],check:"1.5 млрд с пула 10 млрд под 15% — прямой счёт.",traps:{1:"ошибка на разряд (1.5%).",2:"взяли весь пул как доход.",3:"грубая ошибка разрядов."}},
+1:{given:"Кэшбэк 1.5%, 200K tx/мес, чек 2K. Стоимость/год.",steps:[{t:"Месячный оборот.",c:"200K × 2K = 400M/мес"},{t:"Кэшбэк за месяц, потом год.",c:"400M × 1.5% = 6M/мес → 72M/год",a:"Оборот → процент → год."}],check:"6M/мес → 72M/год — сходится.",traps:{1:"полгода или 0.75%.",2:"примерно месяц / разряд.",3:"ошибка на разряд (×10)."}},
+2:{given:"Ставка размещения = ключевая − 4%. Ключевая 21% → 12%.",steps:[{t:"Ставка размещения до и после.",c:"было 21−4=17%, стало 12−4=8%"},{t:"Падение float ∝ падению ставки (к старой).",c:"(17−8)/17 ≈ 53%",a:"Вычет −4% делает падение НЕЛИНЕЙНЫМ: база 17%, не 21%."}],check:"Float почти вдвое — потому что база 17%.",traps:{0:"посчитали (21−12)/21 по ключевой.",2:"это изменение ставки, а не % падения дохода.",3:"float прямо зависит от ставки."}},
+3:{given:"1M tx/мес, чек 1500, доля кошелька 15%→35%, эквайринг 1.8%.",steps:[{t:"Сколько сделок «ушло» в кошелёк: прирост доли × всего.",c:"(35%−15%)×1M = 200K tx"},{t:"Экономия = сделки × чек × ставка.",c:"200K × 1,500 × 1.8% = 5.4M",a:"Только ПРИРОСТ доли × объём × ставку."}],check:"5.4M/мес на 200K мигрировавших — сходится.",traps:{1:"взяли 10% прироста.",2:"ошибка на разряд.",3:"ошибка на разряд (×10)."}}
+},
+attach:{
+0:{given:"500K сделок/мес, attach 8%, комиссия 480/tx.",steps:[{t:"Сделки с прикреплённым продуктом.",c:"500K × 8% = 40K tx"},{t:"× комиссию.",c:"40K × 480 = 19.2M",a:"attach режет базу до платящих, потом × комиссию."}],check:"19.2M/мес при 40K по 480₽ — сходится.",traps:{1:"разряд (×10).",2:"разряд (÷10).",3:"по всем 500K без attach."}},
+1:{given:"Attach 5% → 12%. Рост выручки BNPL.",steps:[{t:"Рост в разы = новое/старое.",c:"12/5 = 2.4"},{t:"2.4× = +140%.",c:"+140%",a:"+7 п.п. на базе 5 = +140%."}],check:"Мощная нелинейность от низкой базы 5%.",traps:{0:"спутали п.п. (7) с ростом.",2:"2.4× это +140%, не +240%.",3:"это изменение attach, не рост выручки."}},
+2:{given:"Расходы 15M/мес, комиссия 480/tx, 500K сделок.",steps:[{t:"Сделок для покрытия расходов.",c:"15M / 480 ≈ 31,250 tx"},{t:"÷ всего сделок → минимальный attach.",c:"31,250 / 500K = 6.25%",a:"BE attach = (расходы/комиссия)/всего сделок."}],check:"6.25% ниже типового attach → при 8% уже прибыльно.",traps:{1:"÷1M или удвоили базу.",2:"ошибка вдвое.",3:"грубое занижение."}},
+3:{given:"Чек без рассрочки 5K, с рассрочкой 30K. Attach 10% на 1M сделок.",steps:[{t:"GMV без рассрочки: все по 5K.",c:"1M × 5K = 5 млрд"},{t:"С рассрочкой: 90% по 5K + 10% по 30K.",c:"900K×5K + 100K×30K = 4.5 + 3 = 7.5 млрд"},{t:"Рост GMV.",c:"7.5/5 − 1 = +50%",a:"10% сделок с чеком ×6 добавляют половину GMV."}],check:"+50% GMV — математика сходится.",traps:{1:"недооценили вклад крупных чеков.",2:"взяли только рост чека (×6).",3:"это рост чека сделки, не всего GMV."}}
+},
+cross:{
+0:{given:"LTV BNPL=9K. P(автокредит)=20%, комиссия 20K.",steps:[{t:"Ожидаемая добавка = вероятность × ценность.",c:"20% × 20K = 4K"},{t:"Новый LTV = базовый + добавка.",c:"9K + 4K = 13K",a:"Добавляй probability-weighted (P×V), не весь доход."}],check:"13K > 9K на ожидаемые 4K.",traps:{0:"забыли добавить cross-sell.",2:"прибавили весь доход 20K без вероятности.",3:"вероятность 10% вместо 20%."}},
+1:{given:"Банк: CAC=5K, LTV=9K. Avito: CAC=0, LTV=9K.",steps:[{t:"Эффективность ∝ LTV/CAC. У банка 1.8.",c:"банк: 9K/5K = 1.8"},{t:"У Avito CAC=0 → делёж на ноль.",c:"9K / 0 → ∞",a:"Embedded-дистрибуция (CAC≈0) → LTV:CAC → ∞."}],check:"Любой LTV при нулевом CAC бесконечно эффективнее.",traps:{0:"это лишь отношение LTV, а CAC=0.",1:"взяли CAC банка как множитель.",3:"CAC принципиально разный (5K vs 0)."}},
+2:{given:"Retention 80% → 50%. Lifetime.",steps:[{t:"При 80%: churn 20%.",c:"1/0.2 = 5 лет"},{t:"При 50%: churn 50%.",c:"1/0.5 = 2 года",a:"lifetime = 1/churn. ret 80%→5, 50%→2."}],check:"Срок жизни упал с 5 до 2 лет.",traps:{1:"при 80% lifetime 5, не 4.",2:"при 50% это 2, не 2.5.",3:"завышенные lifetime."}},
+3:{given:"Кэшбэк 500/год. Без него LTV=9K при ret 60%; с ним ret→75%.",steps:[{t:"Без: lifetime=1/0.4=2.5 → годовой вклад 9K/2.5=3,600.",c:"без: 3,600 × 2.5 = 9K"},{t:"С кэшбэком вклад −500, но lifetime=1/0.25=4 года.",c:"с: (3,600−500) × 4 = 12,400"},{t:"Сравниваем.",c:"12,400 > 9,000 → +3,400",a:"Рост retention перебивает прямой расход нелинейно."}],check:"Кэшбэк −500/год, но +1.5 года жизни → LTV +3,400.",traps:{1:"расход не съедает прибыль, lifetime растёт сильнее.",2:"всё дано: ret, LTV, расход.",3:"рост существенный (+38%), не впритык."}}
+},
+fermi:{
+0:{given:"70M MAU, 20% делают сделку=14M, attach 10%, комиссия 500.",steps:[{t:"Сделки/мес = делающие сделку × attach.",c:"14M × 10% = 1.4M tx/мес"},{t:"Комиссия за месяц, потом ×12.",c:"1.4M × 500 = 700M/мес → 8.4 млрд",a:"Декомпозируй слева направо, год = ×12."}],check:"8.4 млрд/год для Avito-масштаба — правдоподобно.",traps:{1:"забыли ×12 / разряд.",2:"лишний разряд вверх.",3:"два разряда вниз."}},
+1:{given:"Ставка 18%, за сколько удвоится.",steps:[{t:"Правило 72: годы ≈ 72/ставку.",c:"72 / 18 = 4 года",a:"Правило 72: t≈72/r% — быстрая оценка удвоения."}],check:"72/18 = ровно 4.",traps:{0:"потребовало бы ~36%.",2:"это ~12%.",3:"спутали со ставкой."}},
+2:{given:"Выручка 195 млрд, 42M юзеров. ARPU.",steps:[{t:"195 млрд = 195,000M, делим на 42M.",c:"195,000M / 42M ≈ 4,640 ₽",a:"млрд/млн = тысячи: 195,000/42 ≈ 4,600."}],check:"~4,600 ₽ ARPU финтеха — реалистично.",traps:{1:"ошибка на разряд (×10).",2:"ошибка на разряд (÷10).",3:"забыли масштаб (млрд/млрд)."}},
+3:{given:"Цель финтеха 15 млрд/год, MAU=70M. ARPU.",steps:[{t:"15 млрд = 15,000M, делим на 70M.",c:"15,000M / 70M ≈ 214 ₽",a:"млрд/млн = тысячи. Если платят не все 70M — ARPU на платящего выше."}],check:"~215 ₽ на всю базу низко: пользуются не все.",traps:{1:"ошибка на разряд (×10).",2:"два разряда вверх.",3:"неверный масштаб."}},
+4:{given:"Комиссия 3.5%, каждая 5-я сделка через доставку, 10M сделок/мес, чек 3K.",steps:[{t:"Доставочных сделок: фильтруем базу.",c:"10M / 5 = 2M tx/мес"},{t:"Выручка/мес = tx × чек × комиссия, потом ×12.",c:"2M × 3K × 3.5% = 210M/мес → 2.52 млрд",a:"Сначала отфильтруй базу (каждая 5-я), потом цепочка × год."}],check:"2M платных сделок по ~105₽ → 2.52 млрд/год.",traps:{1:"забыли ×12 / разряд.",2:"лишний разряд.",3:"взяли все 10M, не каждую 5-ю."}}
+}
+};
+
+/* ===== end v4 engine ===== */
+
 applyHardening();
 augmentQuestions();
+attachSolutions();
 restoreState();
 buildModes();
 setMode(ST.sess&&ST.sess.lastDay===today()?'home':'session');
