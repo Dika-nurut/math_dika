@@ -142,6 +142,13 @@ h1{font-size:22px;text-align:center;margin-bottom:4px;color:#f1f5f9}
 
 /* cheat sheet */
 .cheat-intro{font-size:13px;color:#94a3b8;line-height:1.6;background:#1e293b;border:1px solid #334155;border-left:3px solid #6366f1;border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.bench-grp{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#818cf8;margin:16px 0 2px;font-weight:700}
+.brow{padding:8px 0;border-bottom:1px solid #1e293b}
+.brow-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.brow-m{color:#e2e8f0;font-weight:600;font-size:13px}
+.brow-n{color:#6ee7b7;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13px;text-align:right}
+.brow-c{color:#64748b;font-size:11.5px;line-height:1.45;margin-top:3px}
+.brow-c b{color:#94a3b8}
 .cheat-h{font-size:15px;font-weight:700;color:#f1f5f9;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
 .ctab{width:100%;border-collapse:collapse;font-size:13px;background:#1e293b;border:1px solid #334155;border-radius:10px;overflow:hidden}
 .ctab td{padding:8px 12px;border-bottom:1px solid #0f172a}
@@ -2008,6 +2015,36 @@ function renderCheat(){
   h+=fx('Stickiness','DAU / MAU');
   h+=fx('Выручка платежа','tx × чек × take rate × доля');
   h+=fx('Float income','остатки × ставка размещения');
+
+  // ---- benchmarks ("норма") ----
+  h+='<div class="cheat-h">📊 Бенчмарки — «что считается нормой»</div>';
+  h+='<div class="cheat-intro" style="border-left-color:#10b981">Считать мало — на интервью спросят «<b style="color:#c4b5fd">а это хорошо?</b>». Это ориентиры РФ-финтеха (порядки, не точные цифры). Знать «норму» = звучать как сеньор.</div>';
+  function bgrp(t){return '<div class="bench-grp">'+t+'</div>';}
+  function brow(m,n,c){return '<div class="brow"><div class="brow-top"><span class="brow-m">'+m+'</span><span class="brow-n">'+n+'</span></div>'+(c?'<div class="brow-c">'+c+'</div>':'')+'</div>';}
+  h+=bgrp('Макро — контекст всего');
+  h+=brow('Ключевая ставка ЦБ','~16–21%','Драйвер COF, ставок кредитов, дисконта. «Дорогие деньги» → <b>payback важнее роста</b>.');
+  h+=brow('Инфляция РФ','~7–9%','Нижняя граница «осмысленной» доходности.');
+  h+=bgrp('Банк / кредит');
+  h+=brow('NIM','4–6%','РФ выше мировых из-за ставки. Необеспеч. розница (Т-Банк) ~10–14%.');
+  h+=brow('Cost of Risk','2–4%','Обеспеченное <1%; розница 2–4% норма; <b>>6% — тревога</b>.');
+  h+=brow('CET1','≥4.5%','Базель-минимум; с буферами факт ~8–12%. Норматив ЦБ Н1.0 ≥8%.');
+  h+=brow('Cost/Income (CIR)','<45%','Ключевой KPI эффективности банка. >60% — раздут.');
+  h+=brow('ROE банка','15–25%','Топ РФ-банки высокие. ROE = ROA × леверидж.');
+  h+=brow('Debt/EBITDA','≤3x','>4x — опасная долговая нагрузка.');
+  h+=brow('Interest Coverage','>3x','EBIT/проценты. <1.5x — риск дефолта.');
+  h+=bgrp('Юнит-экономика / маркетплейс');
+  h+=brow('LTV:CAC','≥3:1','1:1 убыток; >5:1 — недоинвестируем в рост.');
+  h+=brow('CAC payback','<12–18 мес','При высокой ставке — чем быстрее, тем лучше (деньги дорогие).');
+  h+=brow('Retention (год)','70–90%','Хороший продукт; кошелёк/экосистема ещё выше.');
+  h+=brow('Stickiness DAU/MAU','>20%','Сильно. Соцсети 50%+; финтех-апп обычно 10–20%.');
+  h+=brow('Take rate маркетплейса','~3–4%','Ozon ~3–4%; Avito — сервисная модель (объявления+услуги+финтех).');
+  h+=bgrp('Платежи');
+  h+=brow('Эквайринг карты (MDR)','~1.5–2.5%','Комиссия продавца за приём карты.');
+  h+=brow('СБП C2B','~0.4–0.7%','Регулируется ЦБ, <b>дешевле карт → угроза карточной экономике</b>.');
+  h+=brow('СБП C2C','0%','Переводы по телефону бесплатны (до лимита).');
+  h+=bgrp('Оценка');
+  h+=brow('EV/EBITDA (IT/финтех РФ)','~5–9x','Санкции и высокая ставка давят мультипликаторы.');
+  h+=brow('P/B для банков','~0.8–1.5x','<b>Банки оценивают по P/B + ROE, НЕ по EV/EBITDA.</b> P/B ≈ ROE/стоимость капитала.');
 
   // ---- concept spines ----
   h+='<div class="cheat-h">🗺️ Карта связей — 5 «хребтов»</div>';
